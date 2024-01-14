@@ -1,5 +1,6 @@
 import { deleteCookie, getCookie, setCookie } from "cookies-next"
 import cookie from "cookiejs"
+import React from "react"
 
 export class ServerSideCookies {
     constructor(req, res) {
@@ -101,4 +102,8 @@ export class ClientSideCookies {
             this.cookies.remove(key)
         }
     }
+}
+
+export default function CustomCookie() {
+    return null
 }
