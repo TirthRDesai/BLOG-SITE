@@ -1,0 +1,55 @@
+.LoginPageLeftLayout {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	width: clamp(40%, 55%, 60%);
+	height: 100vh;
+	background-color: #323743ff;
+}
+
+.LoginContainer {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	width: clamp(60%, 70%, 80%);
+	height: fit-content;
+	padding-top: 10px;
+	padding-bottom: 20px;
+	border: 2px solid rgba(255, 255, 255, 0.338);
+}
+
+.DetailsContainer {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	width: 60%;
+	height: fit-content;
+	padding: 1.4rem 0rem;
+}
+
+.headingDiv {
+	overflow-x: hidden;
+	font-size: 2.5rem;
+	font-weight: 700;
+	text-align: center;
+	color: #f4f4f4;
+}
+
+.animate_heading {
+	animation: animate_heading 3s ease-in-out forwards;
+}
+
+@keyframes animate_heading {
+	0% {
+		width: 100%;
+	}
+	50% {
+		width: 0%;
+	}
+	100% {
+		width: 100%;
+	}
+}

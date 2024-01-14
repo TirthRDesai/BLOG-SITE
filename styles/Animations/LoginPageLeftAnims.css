@@ -1,0 +1,15 @@
+.anim_close_open {
+	animation: close_open 1s ease-in-out;
+}
+
+@keyframes open_close {
+	0% {
+		width: 100%;
+	}
+	50% {
+		width: 0%;
+	}
+	100% {
+		width: 100%;
+	}
+}
