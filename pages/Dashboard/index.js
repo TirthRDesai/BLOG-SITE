@@ -18,7 +18,17 @@ function Dashboard({ Username }) {
 
     const [fetchOnCall, setFetchOnCall] = useState(false)
 
-    const [UserData, setUserData] = useState({})
+    const [UserData, setUserData] = useState({
+        Username: "",
+        Name: "",
+        Followers: [],
+        Following: [],
+        Posts: [],
+        ProfilePic: "",
+        Email: "",
+        Bio: "",
+        Password: ""
+    })
 
     useEffect(() => {
         async function fetchData() {
