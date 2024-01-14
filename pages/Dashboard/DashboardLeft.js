@@ -4,12 +4,15 @@ import { EncryptData, DecryptData } from '../EncryptingFunctions'
 import Image from 'next/image'
 import defaultProfilePicture from '../../public/Assets/defaultProfilePicture.png'
 import Swal from 'sweetalert2'
+import { useMemo } from 'react'
 
 function DashboardLeft({ UserData, setFetchOnCall }) {
 
-    const Followers = UserData.Followers ? UserData.Followers : []
-    const Following = UserData.Following ? UserData.Following : []
-    const ProfilePic = UserData.ProfilePic ? UserData.ProfilePic : "Default"
+
+    const Followers = useMemo(() => UserData ? UserData.Followers ? UserData.Followers : [] : [], [UserData])
+    const Following = useMemo(() => UserData ? UserData.Following ? UserData.Following : [] : [], [UserData]);
+
+    const ProfilePic = useMemo(() => UserData ? UserData.ProfilePic ? UserData.ProfilePic : "Default" : "Default", [UserData])
 
     const [findIsLoading, setFindIsLoading] = useState(false)
     const friendUsernameInpRef = useRef(null)
@@ -480,7 +483,7 @@ function DashboardLeft({ UserData, setFetchOnCall }) {
 
         setBase64()
 
-    }, [UserData.Followers, UserData.Following])
+    }, [Followers, Following])
 
     return (
         <div className={styles.DashboardLeft}>
@@ -494,12 +497,12 @@ function DashboardLeft({ UserData, setFetchOnCall }) {
                         <div className={'flex flex-row items-center justify-start gap-8 w-[90%]'}>
                             <Image alt='ProfilePic' height={400} width={400} className='w-[80px] aspect-square object-cover border-2 border-black bg-slate-300 rounded-full' id="user_profile_pic" />
                             <div className='flex flex-col items-start justify-center'>
-                                <h1 className=' font-extrabold text-2xl'>{UserData.Name}</h1>
-                                <h2 className=' text-base text-blue-800 font-bold'>@{UserData.Username}</h2>
+                                <h1 className=' font-extrabold text-2xl'>{UserData ? UserData.Name : ""}</h1>
+                                <h2 className=' text-base text-blue-800 font-bold'>@{UserData ? UserData.Username : ""}</h2>
                             </div>
                         </div>
                         <div className='flex flex-col items-start justify-center gap-8 w-[90%] mt-4'>
-                            <p className='text-sm text-justify text-black font-semibold'>{UserData.Bio}</p>
+                            <p className='text-sm text-justify text-black font-semibold'>{UserData ? UserData.Bio : ""}</p>
                             <div className='flex flex-row gap-6 justify-evenly items-center w-full'>
 
                                 <button

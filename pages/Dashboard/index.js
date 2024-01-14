@@ -14,21 +14,9 @@ import { DecryptData } from '../EncryptingFunctions'
 
 function Dashboard({ Username }) {
 
-    const router = useRouter()
-
     const [fetchOnCall, setFetchOnCall] = useState(false)
 
-    const [UserData, setUserData] = useState({
-        Username: "",
-        Name: "",
-        Followers: [],
-        Following: [],
-        Posts: [],
-        ProfilePic: "",
-        Email: "",
-        Bio: "",
-        Password: ""
-    })
+    const [UserData, setUserData] = useState(null)
 
     useEffect(() => {
         async function fetchData() {
