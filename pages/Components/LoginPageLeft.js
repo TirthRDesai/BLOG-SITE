@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import styles from '../../styles/LoginPageLeft.module.css'
 import { Balsamiq_Sans } from 'next/font/google'
-import Image from 'next/image'
 
 const balsamiqFont = Balsamiq_Sans({
     subsets: ['latin'],
@@ -235,10 +234,6 @@ function LoginPageLeft({ isLogin, setUsername, setPassword, usernameRef, loginUs
                             }></i>
                         </div>
                     </div>
-                    {
-                        // h-0 remove
-                        // py-3 border-2 
-                    }
                     <div className="relative flex items-center justify-center w-full" style={{ marginTop: "0px", height: "0px" }} ref={emailRef}>
                         <input type="email" className="peer py-0 pe-0 ps-9 block w-full bg-transparent text-base outline-none disabled:opacity-50 disabled:pointer-events-none text-white" placeholder="Enter Email" onChange={(e) => setEmail(e.target.value)} style={{ height: "0px" }} autoComplete='off' />
                         <div className="absolute inset-y-0 start-0 hidden items-center justify-end pointer-events-none ps-[10px] peer-disabled:opacity-50 pt-1 opacity-0 border-[#f4f4f4] peer-disabled:pointer-events-none">

@@ -36,6 +36,7 @@ export default async function handler(req, res) {
 
         if (url) {
             imageData = await getImageBase64(url)
+            console.log(imageData)
         } else {
             imageData = "Default"
         }
@@ -56,7 +57,13 @@ export default async function handler(req, res) {
 function getImageBase64(url) {
     return new Promise((resolve, reject) => {
         fetch(url)
-            .then(response => response.arrayBuffer())
+            .then(response => {
+                if (response.ok) {
+                    return response.arrayBuffer()
+                } else {
+                    resolve("Default")
+                }
+            })
             .then(buffer => {
                 var base64Data = btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
 

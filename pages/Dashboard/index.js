@@ -3,9 +3,6 @@ import styles from "../../styles/Dashboard.module.css"
 import DashboardLeft from './DashboardLeft'
 import DashboardRight from './DashboardRight'
 import { useRouter } from 'next/router'
-import { createClient } from '@supabase/supabase-js'
-import getUserData from '../api/GetUserData'
-import { getCookies } from 'cookies-next'
 import { ServerSideCookies } from '../CustomCookie'
 import DashboardFallback from './DashboardFallback'
 import useSWR from 'swr'
@@ -17,6 +14,9 @@ function Dashboard({ Username }) {
     const [fetchOnCall, setFetchOnCall] = useState(false)
 
     const [UserData, setUserData] = useState(null)
+
+    const [Action, setAction] = useState('POSTS')
+    const [Data, setData] = useState({})
 
     useEffect(() => {
         async function fetchData() {
@@ -62,7 +62,6 @@ function Dashboard({ Username }) {
     )
     useEffect(() => {
         if (data) {
-            console.log(data)
             setUserData(data)
         }
     }, [data])
@@ -82,11 +81,13 @@ function Dashboard({ Username }) {
         )
     }
 
+
+
     return (
 
         <div className={styles.DashboardLayout}>
-            <DashboardLeft UserData={UserData} setFetchOnCall={setFetchOnCall} />
-            <DashboardRight />
+            <DashboardLeft UserData={UserData} setFetchOnCall={setFetchOnCall} setAction={setAction} setData={setData} />
+            <DashboardRight Action={Action} Data={Data} setFetchOnCall={setFetchOnCall} />
         </div>
     )
 

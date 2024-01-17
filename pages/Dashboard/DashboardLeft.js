@@ -6,9 +6,7 @@ import defaultProfilePicture from '../../public/Assets/defaultProfilePicture.png
 import Swal from 'sweetalert2'
 import { useMemo } from 'react'
 
-function DashboardLeft({ UserData, setFetchOnCall }) {
-
-
+function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
     const Followers = useMemo(() => UserData ? UserData.Followers ? UserData.Followers : [] : [], [UserData])
     const Following = useMemo(() => UserData ? UserData.Following ? UserData.Following : [] : [], [UserData]);
 
@@ -22,13 +20,15 @@ function DashboardLeft({ UserData, setFetchOnCall }) {
 
         async function setBase64() {
             const base64Data = await FetchImage(ProfilePic, "profile-pictures")
-            user_profile_pic.src = "data:image/png;base64," + base64Data
+            if (base64Data != "Default") {
+                user_profile_pic.src = "data:image/jpeg;base64," + base64Data
+            }
+
+
         }
 
         if (ProfilePic != "Default") {
             setBase64()
-        } else {
-            user_profile_pic.src = defaultProfilePicture
         }
     }, [ProfilePic])
 
@@ -55,7 +55,7 @@ function DashboardLeft({ UserData, setFetchOnCall }) {
             if (data.ok) {
                 return data.data
             } else {
-                return defaultProfilePicture
+                return "Default"
             }
         })
 
@@ -263,13 +263,24 @@ function DashboardLeft({ UserData, setFetchOnCall }) {
                 if (data.data.ImageData != "Default") {
                     img.src = 'data:image/png;base64,' + data.data.ImageData
                 } else {
-                    img.src = defaultProfilePicture
+                    img.src = "../../Assets/defaultProfilePicture.png"
                 }
                 img.className = "w-[60px] aspect-square object-cover border-2 border-black bg-slate-300 rounded-full"
                 const div2 = document.createElement("div")
                 div2.className = "flex flex-col items-start justify-center"
                 const h1 = document.createElement("h1")
-                h1.className = " font-extrabold text-xl hover:underline"
+                h1.className = " font-extrabold text-xl "
+                if (data.data.Username != UserData.Username) {
+                    h1.className += "hover:underline"
+                }
+
+                h1.addEventListener('click', () => {
+                    if (data.data.Username != UserData.Username) {
+                        setAction("PROFILE")
+                        setData(data.data)
+                    }
+                })
+
                 h1.innerText = data.data.Name
                 const h2 = document.createElement("h2")
                 h2.className = " text-sm text-blue-800 font-bold"
@@ -437,14 +448,23 @@ function DashboardLeft({ UserData, setFetchOnCall }) {
         async function setBase64() {
 
             let BaseData = {}
+            let fullData = {}
 
             for (let i = 0; i < allImageTags.length; i++) {
 
                 const username = allImageTags[i].alt
+                friendName[i].className += " hover:underline"
+
 
                 if (BaseData[username]) {
-                    allImageTags[i].src = BaseData[username]["IMG"]
+                    if (BaseData[username]["IMG"] != "") {
+                        allImageTags[i].src = BaseData[username]["IMG"]
+                    }
                     friendName[i].innerText = BaseData[username]["NAME"]
+                    friendName[i].addEventListener('click', () => {
+                        setAction("PROFILE")
+                        setData(fullData[username])
+                    })
                     continue
                 }
 
@@ -457,33 +477,35 @@ function DashboardLeft({ UserData, setFetchOnCall }) {
                         Username: username
                     })
                 })
-
                 const result = await ProfilePic.json()
-
                 BaseData[username] = {
                     "IMG": "",
                     "NAME": ""
                 }
 
-                if (result.ok) {
+                fullData[username] = result.data
+
+                friendName[i].addEventListener('click', (e) => {
+                    setAction("PROFILE")
+                    setData(fullData[username])
+                })
+
+                if (result.ok && result.data.ImageData != "Default") {
                     allImageTags[i].src = "data:image/png;base64," + result.data.ImageData
 
                     BaseData[username]["IMG"] = "data:image/png;base64," + result.data.ImageData
-                } else {
-                    allImageTags[i].src = defaultProfilePicture
-                    BaseData[username]["IMG"] = defaultProfilePicture
                 }
 
                 friendName[i].innerText = result.data.Name
-
                 BaseData[username]["NAME"] = result.data.Name
+
 
             }
         }
 
         setBase64()
 
-    }, [Followers, Following])
+    }, [Followers, Following, setAction, setData])
 
     return (
         <div className={styles.DashboardLeft}>
@@ -495,20 +517,24 @@ function DashboardLeft({ UserData, setFetchOnCall }) {
 
                     <div className={styles.content}>
                         <div className={'flex flex-row items-center justify-start gap-8 w-[90%]'}>
-                            <Image alt='ProfilePic' height={400} width={400} className='w-[80px] aspect-square object-cover border-2 border-black bg-slate-300 rounded-full' id="user_profile_pic" />
+                            <Image alt='ProfilePic' height={400} width={400} className='w-[80px] aspect-square object-cover border-2 border-black bg-slate-300 rounded-full' id="user_profile_pic" src={defaultProfilePicture} unoptimized />
                             <div className='flex flex-col items-start justify-center'>
                                 <h1 className=' font-extrabold text-2xl'>{UserData ? UserData.Name : ""}</h1>
                                 <h2 className=' text-base text-blue-800 font-bold'>@{UserData ? UserData.Username : ""}</h2>
                             </div>
                         </div>
                         <div className='flex flex-col items-start justify-center gap-8 w-[90%] mt-4'>
-                            <p className='text-sm text-justify text-black font-semibold'>{UserData ? UserData.Bio : ""}</p>
+                            <p className={styles.Bio + ' text-sm text-justify text-black font-semibold'}>{UserData ? UserData.Bio : ""}</p>
                             <div className='flex flex-row gap-6 justify-evenly items-center w-full'>
 
                                 <button
                                     className='
                                 border-2 rounded-lg px-4 py-2 bg-green-800 text-[white] border-green-900 hover:bg-green-900 transition-colors duration-600
                                 '
+                                    onClick={() => {
+                                        setAction("EDIT")
+                                        setData(UserData)
+                                    }}
                                 >Edit Details</button>
 
                                 <button className='border-2 rounded-lg px-4 py-2 bg-red-800 text-[white] border-red-900 hover:bg-red-900 transition-colors duration-600' onClick={() => logoutUser()}>Logout</button>
@@ -523,11 +549,11 @@ function DashboardLeft({ UserData, setFetchOnCall }) {
                             Followers.length > 0 ?
                                 Followers.map((username, index) => {
                                     return (
-                                        <div className='flex flex-row items-center justify-start gap-8 w-[90%]' key={username}>
-                                            <Image alt={username} height={400} width={400} className='w-[60px] aspect-square object-cover border-2 border-black bg-slate-300 rounded-full followersProfilePicture' />
+                                        <div className='flex flex-row items-center justify-start min-h-[60px] mt-4 overflow-hidden gap-8 w-[90%]' key={username}>
+                                            <Image alt={username} height={400} width={400} className='w-[60px] aspect-square object-cover border-2 border-black bg-slate-300 rounded-full followersProfilePicture' src={defaultProfilePicture} unoptimized />
                                             <div className='flex flex-row justify-between w-full h-full border-none items-start'>
                                                 <div className='flex flex-col items-start justify-center'>
-                                                    <h1 className=' font-extrabold text-xl friendName'></h1>
+                                                    <h1 className=' font-extrabold text-xl hover:underline friendName'></h1>
                                                     <h2 className=' text-sm text-blue-800 font-bold'>@{username}</h2>
                                                 </div>
                                                 <div className='h-full w-fit flex justify-center items-center'>
@@ -551,8 +577,8 @@ function DashboardLeft({ UserData, setFetchOnCall }) {
                             Following.length > 0 ?
                                 Following.map((username, index) => {
                                     return (
-                                        <div className='flex flex-row items-center justify-start gap-8 w-[90%]' key={username}>
-                                            <Image alt={username} height={400} width={400} className='w-[60px] aspect-square object-cover border-2 border-black bg-slate-300 rounded-full followingProfilePicture' />
+                                        <div className='flex flex-row items-center justify-start min-h-[60px] mt-4 overflow-hidden gap-8 w-[90%]' key={username} >
+                                            <Image alt={username} height={400} width={400} className='w-[60px] h-[60px] object-cover border-2 border-black bg-slate-300 rounded-full followingProfilePicture' src={defaultProfilePicture} unoptimized />
                                             <div className='flex flex-row justify-between w-full h-full border-none items-start'>
                                                 <div className='flex flex-col items-start justify-center'>
                                                     <h1 className=' font-extrabold text-xl friendName'></h1>

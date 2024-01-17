@@ -1,48 +1,150 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import styles from '../../styles/DashboardRight.module.css'
+import EditDetails from './RightSideComponents/EditDetails'
+import ShowProfile from './RightSideComponents/ShowProfile'
+import Posts from './RightSideComponents/Posts'
+import { Button } from '@/components/ui/button'
+import { ClientSideCookies } from '../CustomCookie'
 
-function DashboardRight() {
+function DashboardRight({ Action, Data, setFetchOnCall }) {
 
-    const [rerender, setRerender] = useState(false)
+    const [Panel, setPanel] = useState('POSTS')
+
+    const EditDetailsPanelRef = useRef(null)
+    const ShowProfilePanelRef = useRef(null)
+
+    const [PassedData2, setPassedData2] = useState({
+        Username: "",
+        Name: "",
+        Bio: "",
+        ProfilePic: "",
+        Followers: [],
+        Following: [],
+        ImageData: "",
+        Password: "",
+        Email: ""
+    })
+
+    const [PassedData, setPassedData] = useState({
+        Username: "",
+        Name: "",
+        Bio: "",
+        ProfilePic: "",
+        Followers: [],
+        Following: [],
+        ImageData: ""
+    })
+
+    const [Username, setUsername] = useState("")
 
     useEffect(() => {
-        if (rerender == true) {
-            const ws = new WebSocket('ws://localhost:8080')
 
-            console.log('DashboardRight')
+        if (Data.Username != Username) {
+            setTimeout(() => {
+                setPassedData({
+                    Username: Data.Username,
+                    Name: Data.Name,
+                    Bio: Data.Bio,
+                    ProfilePic: Data.ProfilePic,
+                    Followers: Data.Followers,
+                    Following: Data.Following,
+                    ImageData: Data.ImageData
+                })
+            }, 500)
+        } else {
+            console.log("HERE")
 
-            console.log(ws)
+            setPassedData2({
+                Username: Data.Username,
+                Name: Data.Name,
+                Bio: Data.Bio,
+                ProfilePic: Data.ProfilePic,
+                Followers: Data.Followers,
+                Following: Data.Following,
+                ImageData: Data.ImageData,
+                Password: Data.Password,
+                Email: Data.Email
+            })
+        }
+    }, [Data, Username])
 
+    useEffect(() => {
+        const clientSideCookies = new ClientSideCookies()
+        const Username = clientSideCookies.getCustomCookie("Username")
+        setUsername(Username)
+    }, [])
 
-            ws.onerror = (err) => {
-                console.log(
-                    "Socket encountered error: ",
-                    err,
-                    "Closing socket"
-                );
+    const [alreadyOpened, setAlreadyOpened] = useState("")
 
-                ws.close();
+    useEffect(() => {
+
+        const EditDetailsPanelDiv = EditDetailsPanelRef.current
+        const ShowProfilePanelDiv = ShowProfilePanelRef.current
+
+        let delay = 100
+
+        if (Action == "EDIT") {
+            if (Panel == "PROFILE") {
+                ShowProfilePanelDiv.style.transform = "scale(0)"
+                delay = 500
+
+                setTimeout(() => {
+                    ShowProfilePanelDiv.style.visibility = "hidden"
+                }, 500);
+
+            }
+            EditDetailsPanelDiv.style.visibility = "visible"
+            setTimeout(() => {
+                EditDetailsPanelDiv.style.transform = "scale(1)"
+            }, delay)
+        }
+        else if (Action == "PROFILE") {
+            if (Panel == "EDIT") {
+                EditDetailsPanelDiv.style.transform = "scale(0)"
+                delay = 500
+
+                setTimeout(() => {
+                    EditDetailsPanelDiv.style.visibility = "hidden"
+                }, 500);
+
+            }
+            if (Panel == "PROFILE") {
+                if (alreadyOpened != Data.Username) {
+                    ShowProfilePanelDiv.style.transform = "scale(0)"
+                    delay = 500
+
+                    setTimeout(() => {
+                        ShowProfilePanelDiv.style.visibility = "hidden"
+                    }, 500);
+                }
             }
 
-
-            ws.onopen = () => {
-                ws.send("HELLO SERVER")
-
-                console.log("Connection Opened")
-            };
-
-            ws.onmessage = (event) => {
-                console.log('Received:', event.data);
-            };
-            ws.onclose = () => {
-                console.log('Disconnected from WebSocket server');
-            };
-            setRerender(false)
+            setTimeout(() => {
+                ShowProfilePanelDiv.style.visibility = "visible"
+                ShowProfilePanelDiv.style.transform = "scale(1)"
+            }, delay)
         }
-    }, [rerender])
+
+
+        setPanel(Action)
+    }, [Action, Data, Panel, alreadyOpened])
+
     return (
+
         <div className={styles.DashboardRight}>
-            <button className='bg-red-500 px-4 py-2 text-center text-white border-2 border-red-800 rounded-xl' onClick={() => setRerender(true)}>RE-RENDER</button>
+            <div ref={EditDetailsPanelRef} className='absolute invisible w-full h-full inset-0 z-30 transition-transform duration-500' style={{
+                transform: "scale(0)"
+            }}>
+                <EditDetails Data={PassedData2} setFetchOnCall={setFetchOnCall} />
+            </div>
+
+            <div ref={ShowProfilePanelRef} className='absolute invisible w-full h-full inset-0 z-30 transition-transform duration-500' style={{
+                transform: "scale(0)"
+            }}>
+
+                <ShowProfile Data={PassedData} setFetchOnCall={setFetchOnCall} />
+
+            </div>
         </div>
     )
 }

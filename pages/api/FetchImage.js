@@ -4,7 +4,6 @@ import { DecryptData } from "../EncryptingFunctions"
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
 export default async function handler(req, res) {
-    console.log("HERE")
     const { AllData } = req.body
 
     const DecryptedData = JSON.parse(DecryptData(AllData))[0]
@@ -19,14 +18,19 @@ export default async function handler(req, res) {
 
     const base64Data = await convertImageFromURLtoBase64(data.publicUrl)
 
-
     return res.status(200).json({ message: "Image found", ok: true, data: base64Data })
 }
 
 function convertImageFromURLtoBase64(url) {
     return new Promise((resolve, reject) => {
         fetch(url)
-            .then(response => response.arrayBuffer())
+            .then(response => {
+                if (response.ok) {
+                    return response.arrayBuffer()
+                } else {
+                    resolve("Default")
+                }
+            })
             .then(buffer => {
                 var base64Data = btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
 

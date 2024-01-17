@@ -22,7 +22,6 @@
 	opacity: 0;
 	height: 20%;
 	cursor: pointer;
-	overflow: hidden;
 	transition: all 0.5s ease-in-out;
 }
 
@@ -72,13 +71,37 @@
 
 .content {
 	width: 100%;
-	height: 0%;
-	overflow: hidden;
+	height: 100%;
+	overflow-x: hidden;
+	overflow-y: scroll;
 	display: none;
 	align-items: center;
 	justify-content: center;
 	margin-top: 10px;
 	flex-direction: column;
 	transition: all 1s ease;
-	border: none;
+	margin-bottom: 10px;
+	scroll-behavior: smooth;
+}
+
+.content:nth-child(1) {
+	overflow: hidden;
+}
+
+.content::-webkit-scrollbar {
+	width: 6px;
+	background: transparent;
+}
+
+.content::-webkit-scrollbar-thumb {
+	background: seashell;
+	border-radius: 10px;
+}
+
+.Bio {
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+	-webkit-box-orient: vertical;
 }

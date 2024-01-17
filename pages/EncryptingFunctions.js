@@ -5,9 +5,7 @@ const CryptoJS = require("crypto-js")
 
 
 export default function EncryptingFunctions() {
-
     return null
-
 }
 
 export const EncryptData = (data) => {
