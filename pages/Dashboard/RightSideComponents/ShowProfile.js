@@ -2,10 +2,24 @@ import React, { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import defaultProfilePicture from '../../../public/Assets/defaultProfilePicture.png'
 import styles from '../../../styles/DashboardRight.module.css'
+import { Button } from '@/components/ui/button'
+import StaticFunctions from '@/pages/api/StaticFunctions'
+import { DecryptData } from '@/pages/EncryptingFunctions'
+import Swal from 'sweetalert2'
 
-function ShowProfile({ Data, setFetchOnCall }) {
+function ShowProfile({ Data, setFetchOnCall, UserData }) {
     const bgImgRef = useRef(null)
     const smallImgRef = useRef(null)
+
+    const [Username, setUsername] = useState("")
+
+    const [isFollowed, setIsFollowed] = useState(false)
+    const [isUnfollowing, setIsUnfollowing] = useState(false)
+    const [isFollowing, setIsFollowing] = useState(false)
+
+    useEffect(() => {
+        setUsername(UserData.Username)
+    }, [UserData])
 
     const [PassedData, setPassedData] = useState({
         Username: "",
@@ -23,11 +37,18 @@ function ShowProfile({ Data, setFetchOnCall }) {
             Name: Data.Name,
             Bio: Data.Bio,
             ProfilePic: Data.ProfilePic,
-            Followers: Data.Followers,
-            Following: Data.Following,
+            Followers: Array.from(new Set(Data.Followers)),
+            Following: Array.from(new Set(Data.Following)),
             ImageData: Data.ImageData
         })
-    }, [Data])
+        if (Data.Followers) {
+            if (Data.Followers.includes(Username)) {
+                setIsFollowed(true)
+            } else {
+                setIsFollowed(false)
+            }
+        }
+    }, [Data, Username])
 
     useEffect(() => {
         const image = bgImgRef.current
@@ -37,9 +58,11 @@ function ShowProfile({ Data, setFetchOnCall }) {
 
             smallImage.src = "../../Assets/defaultProfilePicture.png"
         } else {
-            image.style.backgroundImage = `url('data:image/png;base64,${PassedData.ImageData}')`
 
-            smallImage.src = `data:image/png;base64,${PassedData.ImageData}`
+            if (PassedData.ImageData) {
+                image.style.backgroundImage = `url('data:image/png;base64,${PassedData.ImageData}')`
+                smallImage.src = `data:image/png;base64,${PassedData.ImageData}`
+            }
         }
     }, [bgImgRef, smallImgRef, PassedData])
 
@@ -58,6 +81,99 @@ function ShowProfile({ Data, setFetchOnCall }) {
         }
     }, [])
 
+    const UnfollowBtn = async (e) => {
+        e.target.style.pointerEvents = "none"
+
+        setIsUnfollowing(true)
+        const staticFunctions = new StaticFunctions(Username)
+
+        const response = await staticFunctions.UnfollowUser(PassedData.Username, UserData.Following)
+
+
+        const result = JSON.parse(DecryptData(response))
+
+        if (result.ok) {
+            setFetchOnCall(true)
+            setIsFollowed(false)
+
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            })
+
+            Toast.fire({
+                icon: 'success',
+                title: 'Unfollowed User'
+            })
+        } else {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            })
+
+            Toast.fire({
+                icon: 'error',
+                title: 'Error Unfollowing User'
+            })
+        }
+
+        setIsUnfollowing(false)
+        e.target.style.pointerEvents = "all"
+    }
+
+    const FollowBtn = async (e) => {
+        console.log(PassedData.Followers)
+        e.target.style.pointerEvents = "none"
+
+        setIsFollowing(true)
+        const staticFunctions = new StaticFunctions(Username)
+
+        const response = await staticFunctions.FollowUser(PassedData.Username, PassedData.Followers, UserData.Following)
+
+        const result = JSON.parse(DecryptData(response))
+
+        if (result.ok) {
+            setFetchOnCall(true)
+            setIsFollowed(true)
+
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            })
+
+            Toast.fire({
+                icon: 'success',
+                title: 'Followed User'
+            })
+        } else {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            })
+
+            Toast.fire({
+                icon: 'error',
+                title: 'Error Following User'
+            })
+        }
+
+        setIsFollowing(false)
+        e.target.style.pointerEvents = "all"
+    }
+
+
     return (
         <div className='w-full h-full flex flex-col items-center justify-center '>
             <div className={' w-[80%] h-[80%] bg-slate-600 scroll-smooth border-4 border-slate-800 rounded-2xl text-white flex flex-col justify-evenly items-center relative overflow-hidden'}>
@@ -71,7 +187,9 @@ function ShowProfile({ Data, setFetchOnCall }) {
                             <span className='mt-2'><span className=' font-bold'>Name:</span> <br /><span className='ml-4'>{PassedData.Name}</span></span>
                             <span className='mt-2 mb-2'><span className=' font-bold'>Username:</span> <br /><span className='ml-4'>@{PassedData.Username}</span></span>
                         </div>
-                        <div className='statscontainer w-[70%] h-[70%] flex flex-col items-start px-2 justify-center bg-[rgba(0,0,0,0.6)] rounded-lg scale-[0.8] transition-transform duration-500'>
+                        <div className='statscontainer w-[70%] h-[70%] flex flex-col items-center px-2 justify-center bg-[rgba(0,0,0,0.6)] rounded-lg scale-[0.8] transition-transform duration-500'>
+                            <span className='mt-2 text-[24px]'><span className=' font-semibold '>Followers: </span>{PassedData.Followers ? (new Set(PassedData.Followers)).size : 0}</span>
+                            <span className='mt-2 text-[24px] mb-2'><span className=' font-semibold'>Following:</span> {PassedData.Followers ? PassedData.Following.length : 0}</span>
 
                         </div>
                         <div className='statscontainer w-[70%] h-[70%] flex flex-col items-start px-2 justify-start bg-[rgba(0,0,0,0.6)] rounded-lg scale-[0.8] transition-transform duration-500'>
@@ -79,9 +197,28 @@ function ShowProfile({ Data, setFetchOnCall }) {
                                 <span className=' font-bold'>Bio:</span> <br /><span className='ml-2 text-justify line-clamp-4 mr-2'>{PassedData.Bio}</span>
                             </span>
                         </div>
-                        <div className='statscontainer w-[70%] h-[70%] flex flex-col items-start px-2 justify-center bg-[rgba(0,0,0,0.6)] rounded-lg scale-[0.8] transition-transform duration-500'>
-                            <h2 className={styles.heading + ' text-[20px]'}></h2>
-                            <h2 className={styles.heading + ' text-[20px]'}>Comments</h2>
+                        <div className='statscontainer w-[70%] h-[70%] flex flex-col items-center px-2 justify-center gap-4 bg-[rgba(0,0,0,0.6)] rounded-lg scale-[0.8] transition-transform duration-500'>
+
+                            {
+                                isFollowed ?
+                                    <Button className='w-[80%] text-[16px] bg-red-500 hover:bg-red-700' onClick={(e) => UnfollowBtn(e)}>
+                                        {
+                                            isUnfollowing ?
+                                                <span className={styles.loader}></span> :
+                                                "Unfollow"
+                                        }
+                                    </Button> :
+                                    <Button className='w-[80%] text-[16px] bg-green-500 hover:bg-green-700' onClick={(e) => { FollowBtn(e) }}>
+                                        {
+                                            isFollowing ?
+                                                <span className={styles.loader}></span> :
+                                                "Follow"
+                                        }
+                                    </Button>
+                            }
+
+                            <Button className='bg-blue-500 w-[80%] text-[16px] hover:bg-blue-700'>View Posts</Button>
+
                         </div>
 
                     </div>

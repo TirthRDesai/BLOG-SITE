@@ -48,7 +48,6 @@ function Dashboard({ Username }) {
             })
             const userData = await response.json()
 
-            console.log(JSON.parse(DecryptData(userData.data)))
             return JSON.parse(DecryptData(userData.data))
         }
 
@@ -87,7 +86,7 @@ function Dashboard({ Username }) {
 
         <div className={styles.DashboardLayout}>
             <DashboardLeft UserData={UserData} setFetchOnCall={setFetchOnCall} setAction={setAction} setData={setData} />
-            <DashboardRight Action={Action} Data={Data} setFetchOnCall={setFetchOnCall} />
+            <DashboardRight Action={Action} Data={Data} setFetchOnCall={setFetchOnCall} UserData={UserData} />
         </div>
     )
 
@@ -106,7 +105,6 @@ export async function getServerSideProps(context) {
         const isLoggedIn = cookies.isLoggedIn
 
         if (isLoggedIn == "No" || isLoggedIn == undefined) {
-            console.log("GOING BACK")
             return {
                 redirect: {
                     destination: '/',

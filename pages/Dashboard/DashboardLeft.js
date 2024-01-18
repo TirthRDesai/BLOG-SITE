@@ -5,6 +5,7 @@ import Image from 'next/image'
 import defaultProfilePicture from '../../public/Assets/defaultProfilePicture.png'
 import Swal from 'sweetalert2'
 import { useMemo } from 'react'
+import StaticFunctions from '../api/StaticFunctions'
 
 function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
     const Followers = useMemo(() => UserData ? UserData.Followers ? UserData.Followers : [] : [], [UserData])
@@ -23,8 +24,6 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
             if (base64Data != "Default") {
                 user_profile_pic.src = "data:image/jpeg;base64," + base64Data
             }
-
-
         }
 
         if (ProfilePic != "Default") {
@@ -237,11 +236,6 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
     const search_user = (e) => {
         setFindIsLoading(true)
         const username = friendUsernameInpRef.current.value
-        const checkList = UserData.Following.map((data) => {
-            return data.Username
-        })
-
-        console.log(checkList)
 
         fetch("/api/FindUser", {
             method: "POST",
@@ -367,66 +361,82 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
         })
     }
 
-    const Unfollow = (username, e) => {
+    const Unfollow = async (username, e) => {
         e.target.disabled = true
         e.target.style.cursor = "wait"
 
-        const newFollowing = UserData.Following.filter((data) => {
-            return data != username
-        })
+        const staticFunctions = new StaticFunctions(UserData.Username)
 
-        const newFollowers = UserData.Followers.filter((data) => {
-            return data != username
-        })
+        const response = await staticFunctions.UnfollowUser(username, UserData.Following)
 
-        const toSendData = [
-            {
-                Username: UserData.Username,
-                newFollowing: newFollowing,
-                FriendUsername: username,
-                newFollowers: newFollowers
-            }
-        ]
+        const result = DecryptData(response)
 
-        fetch("/api/Unfollow", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(
-                {
-                    AllData: EncryptData(JSON.stringify({ toSendData }))
-                }
-            )
-        }).then(res => res.json()).then(data => {
-            if (data.ok) {
-                const Toast = Swal.mixin({
-                    toast: true,
-                    title: "Success!",
-                    text: "Unfollowed Successfully",
-                    position: 'bottom-end',
-                    icon: "success",
-                    showConfirmButton: false,
-                    timer: 2000,
-                    timerProgressBar: true,
-                })
-                Toast.fire()
-                setFetchOnCall(true)
-            } else {
-                const Toast = Swal.mixin({
-                    toast: true,
-                    title: "Error!",
-                    text: "Error Occurred",
-                    position: 'bottom-end',
-                    icon: "error",
-                    showConfirmButton: false,
-                    timer: 2000,
-                    timerProgressBar: true,
-                })
-                Toast.fire()
-                e.target.disabled = false
-            }
-        })
+        if (result.ok) {
+            const Toast = Swal.mixin({
+                toast: true,
+                title: "Success!",
+                text: "Unfollowed",
+                position: 'bottom-end',
+                icon: "success",
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+            })
+            Toast.fire()
+            e.target.style.display = "none"
+            setFetchOnCall(true)
+        } else {
+            const Toast = Swal.mixin({
+                toast: true,
+                title: "Error!",
+                text: "An error occurred while unfollowing",
+                position: 'bottom-end',
+                icon: "error",
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+            })
+            Toast.fire()
+            e.target.disabled = false
+        }
+    }
+
+    const Remove = async (username, e) => {
+        e.target.disabled = true
+        e.target.style.cursor = "wait"
+
+        const staticFunctions = new StaticFunctions(UserData.Username)
+
+        const response = await staticFunctions.RemoveUser(username, UserData.Followers)
+        const result = DecryptData(response)
+        if (result.ok) {
+            const Toast = Swal.mixin({
+                toast: true,
+                title: "Success!",
+                text: "Removed",
+                position: 'bottom-end',
+                icon: "success",
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+            })
+            Toast.fire()
+            e.target.style.display = "none"
+            setFetchOnCall(true)
+        } else {
+            const Toast = Swal.mixin({
+                toast: true,
+                title: "Error!",
+                text: "An error occurred while removing",
+                position: 'bottom-end',
+                icon: "error",
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+            })
+            Toast.fire()
+            e.target.disabled = false
+        }
     }
 
     useEffect(() => {
@@ -491,9 +501,11 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                 })
 
                 if (result.ok && result.data.ImageData != "Default") {
+
                     allImageTags[i].src = "data:image/png;base64," + result.data.ImageData
 
                     BaseData[username]["IMG"] = "data:image/png;base64," + result.data.ImageData
+
                 }
 
                 friendName[i].innerText = result.data.Name
@@ -557,7 +569,7 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                                                     <h2 className=' text-sm text-blue-800 font-bold'>@{username}</h2>
                                                 </div>
                                                 <div className='h-full w-fit flex justify-center items-center'>
-                                                    <button className='border-2 rounded-lg px-2 py-2 bg-red-800 text-[white] border-red-900 hover:bg-red-900 transition-colors duration-600' onClick={(e) => Unfollow(username, e)}>
+                                                    <button className='border-2 rounded-lg px-2 py-2 bg-red-800 text-[white] border-red-900 hover:bg-red-900 transition-colors duration-600' onClick={(e) => Remove(username, e)}>
                                                         <i className="fa-solid fa-trash text-[16px]"></i>
                                                     </button>
                                                 </div>

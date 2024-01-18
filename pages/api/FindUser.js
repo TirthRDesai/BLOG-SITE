@@ -19,9 +19,6 @@ export default async function handler(req, res) {
             `
         ).eq("Username", Username)
 
-        console.log(data[0])
-
-
         if (error) {
             return res.status(401).json({ message: error.message, ok: false })
         }
@@ -36,7 +33,6 @@ export default async function handler(req, res) {
 
         if (url) {
             imageData = await getImageBase64(url)
-            console.log(imageData)
         } else {
             imageData = "Default"
         }

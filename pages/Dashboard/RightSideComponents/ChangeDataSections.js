@@ -18,10 +18,8 @@ function ChangeDataSections({ label, defaultValue, action }) {
 
 
     const changeValue = async () => {
-        console.log("HERE")
         setIsDataChanging(true)
         if (isDataChanging) {
-            console.log(isDataChanging)
             const input = inpRef.current
             input.disabled = true
         }

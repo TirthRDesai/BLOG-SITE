@@ -63,7 +63,6 @@ export default function Home({ response }) {
         if (!login) {
             const nameField = nameRef.current
             const emailField = emailRef.current
-            console.log(nameField)
 
             const nameInput = nameField.children[0]
             const emailInput = emailField.children[0]
@@ -130,13 +129,8 @@ export default function Home({ response }) {
             })
             const result = await response.json()
             if (result.ok) {
-                console.log(result)
                 const data = CryptoJS.AES.decrypt(result.data, process.env.NEXT_PUBLIC_KEY)
-                console.log(data)
                 const DataReceived = JSON.parse(data.toString(CryptoJS.enc.Utf8))
-
-                console.log(DataReceived)
-
 
                 clientSideCookies.setCustomCookie("Username", DataReceived.Username)
                 clientSideCookies.setCustomCookie("isLoggedIn", "Yes")
@@ -154,8 +148,6 @@ export default function Home({ response }) {
                 Name: name,
                 Email: email
             }
-
-            console.log(sendData)
             const response = await fetch(baseUrl + "/api/AddData", {
                 method: "POST",
                 body: JSON.stringify(sendData),
@@ -164,7 +156,6 @@ export default function Home({ response }) {
                 }
             })
             const result = await response.json()
-            console.log(result)
 
             if (result.ok) {
                 const data = CryptoJS.AES.decrypt(result.data, process.env.NEXT_PUBLIC_KEY)
@@ -219,7 +210,6 @@ export async function getServerSideProps(context) {
 
 
     const isLoggedIn = serverSideCookie.getCustomCookie("isLoggedIn")
-    console.log(isLoggedIn)
 
     if (isLoggedIn == "Yes") {
         return {

@@ -6,24 +6,47 @@ import Posts from './RightSideComponents/Posts'
 import { Button } from '@/components/ui/button'
 import { ClientSideCookies } from '../CustomCookie'
 
-function DashboardRight({ Action, Data, setFetchOnCall }) {
+function DashboardRight({ Action, Data, setFetchOnCall, UserData }) {
 
     const [Panel, setPanel] = useState('POSTS')
 
     const EditDetailsPanelRef = useRef(null)
     const ShowProfilePanelRef = useRef(null)
 
-    const [PassedData2, setPassedData2] = useState({
+    const [MainData, setMainData] = useState({
+        id: "",
+        created_at: "",
         Username: "",
         Name: "",
+        Email: "",
+        Password: "",
         Bio: "",
         ProfilePic: "",
         Followers: [],
         Following: [],
-        ImageData: "",
-        Password: "",
-        Email: ""
+        Posts: [],
+        ImageData: ""
     })
+
+    useEffect(() => {
+        if (UserData) {
+            setMainData({
+                id: UserData.id,
+                created_at: UserData.created_at,
+                Username: UserData.Username,
+                Name: UserData.Name,
+                Email: UserData.Email,
+                Password: UserData.Password,
+                Bio: UserData.Bio,
+                ProfilePic: UserData.ProfilePic,
+                Followers: UserData.Followers,
+                Following: UserData.Following,
+                Posts: UserData.Posts,
+                ImageData: UserData.ImageData
+            })
+        }
+    }, [UserData])
+
 
     const [PassedData, setPassedData] = useState({
         Username: "",
@@ -51,20 +74,6 @@ function DashboardRight({ Action, Data, setFetchOnCall }) {
                     ImageData: Data.ImageData
                 })
             }, 500)
-        } else {
-            console.log("HERE")
-
-            setPassedData2({
-                Username: Data.Username,
-                Name: Data.Name,
-                Bio: Data.Bio,
-                ProfilePic: Data.ProfilePic,
-                Followers: Data.Followers,
-                Following: Data.Following,
-                ImageData: Data.ImageData,
-                Password: Data.Password,
-                Email: Data.Email
-            })
         }
     }, [Data, Username])
 
@@ -73,8 +82,6 @@ function DashboardRight({ Action, Data, setFetchOnCall }) {
         const Username = clientSideCookies.getCustomCookie("Username")
         setUsername(Username)
     }, [])
-
-    const [alreadyOpened, setAlreadyOpened] = useState("")
 
     useEffect(() => {
 
@@ -99,6 +106,7 @@ function DashboardRight({ Action, Data, setFetchOnCall }) {
             }, delay)
         }
         else if (Action == "PROFILE") {
+            console.log(Action)
             if (Panel == "EDIT") {
                 EditDetailsPanelDiv.style.transform = "scale(0)"
                 delay = 500
@@ -109,7 +117,7 @@ function DashboardRight({ Action, Data, setFetchOnCall }) {
 
             }
             if (Panel == "PROFILE") {
-                if (alreadyOpened != Data.Username) {
+                if (Username != Data.Username) {
                     ShowProfilePanelDiv.style.transform = "scale(0)"
                     delay = 500
 
@@ -127,7 +135,7 @@ function DashboardRight({ Action, Data, setFetchOnCall }) {
 
 
         setPanel(Action)
-    }, [Action, Data, Panel, alreadyOpened])
+    }, [Action, Data, Panel, Username])
 
     return (
 
@@ -135,14 +143,14 @@ function DashboardRight({ Action, Data, setFetchOnCall }) {
             <div ref={EditDetailsPanelRef} className='absolute invisible w-full h-full inset-0 z-30 transition-transform duration-500' style={{
                 transform: "scale(0)"
             }}>
-                <EditDetails Data={PassedData2} setFetchOnCall={setFetchOnCall} />
+                <EditDetails Data={MainData} setFetchOnCall={setFetchOnCall} />
             </div>
 
             <div ref={ShowProfilePanelRef} className='absolute invisible w-full h-full inset-0 z-30 transition-transform duration-500' style={{
                 transform: "scale(0)"
             }}>
 
-                <ShowProfile Data={PassedData} setFetchOnCall={setFetchOnCall} />
+                <ShowProfile Data={PassedData} setFetchOnCall={setFetchOnCall} UserData={MainData} />
 
             </div>
         </div>

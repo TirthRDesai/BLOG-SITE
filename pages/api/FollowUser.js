@@ -3,8 +3,6 @@ import { DecryptData } from "../EncryptingFunctions"
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
-const CryptoJS = require("crypto-js")
-
 export default async function handler(req, res) {
 
     try {
@@ -12,7 +10,22 @@ export default async function handler(req, res) {
 
         const DecryptedData = JSON.parse(DecryptData(AllData)).toSendData
 
-        const { Username, newFollowing, FriendUsername, newFollowers } = DecryptedData[0]
+        let { Username, newFollowing, FriendUsername, newFollowers } = DecryptedData[0]
+
+        if (!newFollowers) {
+            newFollowers = []
+
+            const { data, error } = await supabase.from("UserData").select("Followers").eq("Username", FriendUsername)
+
+            if (error) {
+                console.log(error)
+                return res.status(401).json({ message: error, ok: false })
+            }
+
+            newFollowers = data[0].Followers.filter((data) => {
+                return data != Username
+            })
+        }
 
 
         const { error } = await supabase.from("UserData").update({ Following: newFollowing }).eq("Username", Username)
