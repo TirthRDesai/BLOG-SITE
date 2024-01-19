@@ -136,7 +136,10 @@ export default function Home({ response }) {
                 clientSideCookies.setCustomCookie("isLoggedIn", "Yes")
 
                 router.push({
-                    pathname: "/Dashboard"
+                    pathname: "/Dashboard",
+                    query: {
+                        NewUser: false
+                    }
                 }, "Dashboard")
             } else {
                 alert(result.message)
@@ -163,9 +166,11 @@ export default function Home({ response }) {
 
                 clientSideCookies.setCustomCookie("Username", DataReceived.Username)
                 clientSideCookies.setCustomCookie("isLoggedIn", "Yes")
-
                 router.push({
                     pathname: "/Dashboard",
+                    query: {
+                        NewUser: true
+                    }
                 }, "Dashboard")
             } else {
                 alert(result.message)
@@ -179,20 +184,6 @@ export default function Home({ response }) {
             inputBox.value = username.toLowerCase()
         }
     }, [username])
-
-    // useEffect(() => {
-    //     const makePass = () => {
-    //         let pass = ""
-    //         for (let i = 0; i < password.length; i++) {
-    //             pass += "*"
-    //         }
-    //         return pass
-    //     }
-    //     const inputBox = passwordRef.current.children[0]
-    //     if (password != null) {
-    //         inputBox.value = makePass()
-    //     }
-    // })
 
 
     return (
@@ -212,10 +203,14 @@ export async function getServerSideProps(context) {
     const isLoggedIn = serverSideCookie.getCustomCookie("isLoggedIn")
 
     if (isLoggedIn == "Yes") {
+        console.log("HERE")
         return {
             redirect: {
                 destination: "/Dashboard",
-                permanent: false
+
+                permanent: false,
+
+
             }
         }
     }

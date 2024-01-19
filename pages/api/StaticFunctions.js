@@ -90,7 +90,6 @@ export class StaticFunctions {
     }
 
     async RemoveUser(FriendUsername, Followers) {
-
         const newFollowers = Followers.filter((data) => {
             return data != FriendUsername
         })
@@ -115,9 +114,18 @@ export class StaticFunctions {
 
         const res = await response.json()
         return EncryptData(JSON.stringify(res))
-
     }
 
+    async GetPosts(Username) {
+        const response = await fetch("/api/GetPosts/" + Username, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        const data = await response.json()
+        return EncryptData(JSON.stringify(data))
+    }
 }
 
 export default StaticFunctions

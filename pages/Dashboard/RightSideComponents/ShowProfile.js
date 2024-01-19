@@ -7,7 +7,7 @@ import StaticFunctions from '@/pages/api/StaticFunctions'
 import { DecryptData } from '@/pages/EncryptingFunctions'
 import Swal from 'sweetalert2'
 
-function ShowProfile({ Data, setFetchOnCall, UserData }) {
+function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef }) {
     const bgImgRef = useRef(null)
     const smallImgRef = useRef(null)
 
@@ -176,7 +176,7 @@ function ShowProfile({ Data, setFetchOnCall, UserData }) {
 
     return (
         <div className='w-full h-full flex flex-col items-center justify-center '>
-            <div className={' w-[80%] h-[80%] bg-slate-600 scroll-smooth border-4 border-slate-800 rounded-2xl text-white flex flex-col justify-evenly items-center relative overflow-hidden'}>
+            <div className={' w-[80%] h-[80%] bg-slate-600 scroll-smooth border-4 border-slate-800 rounded-2xl text-white flex flex-col justify-evenly items-center relative overflow-hidden'} ref={BoxRef}>
                 <div className={styles.FriendProfileContainer} ref={bgImgRef}></div>
                 <div className='text-red-600 bg-[rgba(255,255,255,0.65)] rounded-full w-[160px] h-[160px] z-30 overflow-hidden'>
                     <Image src={defaultProfilePicture} alt='ProfPic' className='w-full h-full object-cover border-2 border-black rounded-full' ref={smallImgRef} unoptimized />

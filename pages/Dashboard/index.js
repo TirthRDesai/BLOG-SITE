@@ -2,14 +2,13 @@ import React, { Suspense, useEffect, useState } from 'react'
 import styles from "../../styles/Dashboard.module.css"
 import DashboardLeft from './DashboardLeft'
 import DashboardRight from './DashboardRight'
-import { useRouter } from 'next/router'
 import { ServerSideCookies } from '../CustomCookie'
 import DashboardFallback from './DashboardFallback'
 import useSWR from 'swr'
 import { DecryptData } from '../EncryptingFunctions'
 
 
-function Dashboard({ Username }) {
+function Dashboard({ Username, NewUser }) {
 
     const [fetchOnCall, setFetchOnCall] = useState(false)
 
@@ -17,6 +16,13 @@ function Dashboard({ Username }) {
 
     const [Action, setAction] = useState('POSTS')
     const [Data, setData] = useState({})
+
+    useEffect(() => {
+        if (NewUser == "true" || NewUser == true) {
+            console.log("HERE")
+
+        }
+    }, [NewUser])
 
     useEffect(() => {
         async function fetchData() {
@@ -86,7 +92,7 @@ function Dashboard({ Username }) {
 
         <div className={styles.DashboardLayout}>
             <DashboardLeft UserData={UserData} setFetchOnCall={setFetchOnCall} setAction={setAction} setData={setData} />
-            <DashboardRight Action={Action} Data={Data} setFetchOnCall={setFetchOnCall} UserData={UserData} />
+            <DashboardRight Action={Action} Data={Data} setFetchOnCall={setFetchOnCall} UserData={UserData} setAction={setAction} setData={setData} />
         </div>
     )
 
@@ -98,13 +104,37 @@ export default Dashboard
 export async function getServerSideProps(context) {
     const { req, res } = context
 
-    const serverSideCookie = new ServerSideCookies(req, res)
-
     try {
-        const cookies = serverSideCookie.getCustomAllCookie()
-        const isLoggedIn = cookies.isLoggedIn
+        // const { NewUser } = context.query
 
-        if (isLoggedIn == "No" || isLoggedIn == undefined) {
+        const serverSideCookie = new ServerSideCookies(req, res)
+
+        try {
+            const cookies = serverSideCookie.getCustomAllCookie()
+            const isLoggedIn = cookies.isLoggedIn
+
+            if (isLoggedIn == "No" || isLoggedIn == undefined) {
+                return {
+                    redirect: {
+                        destination: '/',
+                        permanent: false,
+                    },
+                }
+            }
+
+            const { Username } = cookies
+
+            return {
+                props: {
+                    Username: Username,
+                    NewUser: true
+                }
+            }
+        } catch (e) {
+
+            serverSideCookie.clear()
+            console.log(e)
+
             return {
                 redirect: {
                     destination: '/',
@@ -112,19 +142,8 @@ export async function getServerSideProps(context) {
                 },
             }
         }
-
-        const { Username } = cookies
-
-        return {
-            props: {
-                Username: Username,
-            }
-        }
     } catch (e) {
-
-        serverSideCookie.clear()
         console.log(e)
-
         return {
             redirect: {
                 destination: '/',

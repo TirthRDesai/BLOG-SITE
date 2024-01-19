@@ -6,8 +6,12 @@ import defaultProfilePicture from '../../public/Assets/defaultProfilePicture.png
 import Swal from 'sweetalert2'
 import { useMemo } from 'react'
 import StaticFunctions from '../api/StaticFunctions'
+import { ClientSideCookies } from '../CustomCookie'
+import { useRouter } from 'next/router'
 
 function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
+
+    const router = useRouter()
     const Followers = useMemo(() => UserData ? UserData.Followers ? UserData.Followers : [] : [], [UserData])
     const Following = useMemo(() => UserData ? UserData.Following ? UserData.Following : [] : [], [UserData]);
 
@@ -163,7 +167,10 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                 })
                 Toast.fire()
                 localStorage.clear()
-                window.location.reload()
+                const clientSideCookies = new ClientSideCookies()
+                clientSideCookies.deleteCustomCookie("Username")
+                clientSideCookies.deleteCustomCookie("isLoggedIn")
+                router.push("/")
             }
         })
     }
@@ -523,7 +530,7 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
         <div className={styles.DashboardLeft}>
             <div className='w-3/4 h-full gap-4 py-6 rounded-[10px] flex flex-col items-center justify-center px-[14px] overflow-hidden' id='container' onMouseLeave={(e) => CollapseCard(e.target)}>
 
-                <div className={styles.Cards} onMouseEnter={(e) => ExpandCard(e.target)} >
+                <div className={styles.Cards} onMouseEnter={(e) => ExpandCard(e.target)} id='ProfileCard'>
 
                     <div className={styles.heading}>Profile</div>
 

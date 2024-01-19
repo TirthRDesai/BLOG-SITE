@@ -6,12 +6,16 @@ import Posts from './RightSideComponents/Posts'
 import { Button } from '@/components/ui/button'
 import { ClientSideCookies } from '../CustomCookie'
 
-function DashboardRight({ Action, Data, setFetchOnCall, UserData }) {
+function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, setData }) {
 
     const [Panel, setPanel] = useState('POSTS')
 
     const EditDetailsPanelRef = useRef(null)
     const ShowProfilePanelRef = useRef(null)
+
+    const overlayRef = useRef(null)
+
+    const BoxRef = useRef(null)
 
     const [MainData, setMainData] = useState({
         id: "",
@@ -27,6 +31,27 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData }) {
         Posts: [],
         ImageData: ""
     })
+
+    const [BoxCoordinates, setBoxCoordinates] = useState({
+        initial: [],
+        final: []
+    })
+
+    useEffect(() => {
+        if (BoxRef) {
+            setTimeout(() => {
+
+                console.log(BoxRef)
+                const Box = BoxRef.current
+                const BoxRect = Box.getBoundingClientRect()
+                const BoxCoordinates = {
+                    initial: [BoxRect.left, BoxRect.top],
+                    final: [BoxRect.right, BoxRect.bottom]
+                }
+                setBoxCoordinates(BoxCoordinates)
+            }, 1100)
+        }
+    }, [BoxRef])
 
     useEffect(() => {
         if (UserData) {
@@ -90,7 +115,15 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData }) {
 
         let delay = 100
 
+        const overlayDiv = overlayRef.current
+
+
         if (Action == "EDIT") {
+            overlayDiv.style.display = "flex"
+
+            overlayDiv.style.opacity = "1"
+
+
             if (Panel == "PROFILE") {
                 ShowProfilePanelDiv.style.transform = "scale(0)"
                 delay = 500
@@ -106,7 +139,9 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData }) {
             }, delay)
         }
         else if (Action == "PROFILE") {
-            console.log(Action)
+            overlayDiv.style.display = "flex"
+            overlayDiv.style.opacity = "1"
+
             if (Panel == "EDIT") {
                 EditDetailsPanelDiv.style.transform = "scale(0)"
                 delay = 500
@@ -135,24 +170,67 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData }) {
 
 
         setPanel(Action)
+
+
     }, [Action, Data, Panel, Username])
+
+    const CloseAllPanels = (e) => {
+
+        const ClickedCoordinates = [e.clientX, e.clientY]
+
+        if (!(ClickedCoordinates[0] >= BoxCoordinates.initial[0] && ClickedCoordinates[0] <= BoxCoordinates.final[0] && ClickedCoordinates[1] >= BoxCoordinates.initial[1] && ClickedCoordinates[1] <= BoxCoordinates.final[1])) {
+
+
+            const EditDetailsPanelDiv = EditDetailsPanelRef.current
+            const ShowProfilePanelDiv = ShowProfilePanelRef.current
+
+            const overlayDiv = overlayRef.current
+
+            overlayDiv.style.opacity = "0"
+
+            setTimeout(() => {
+                overlayDiv.style.display = "none"
+            }, 500);
+
+            if (Panel == "EDIT") {
+                EditDetailsPanelDiv.style.transform = "scale(0)"
+                setTimeout(() => {
+                    EditDetailsPanelDiv.style.visibility = "hidden"
+                }, 500);
+            }
+            else if (Panel == "PROFILE") {
+                ShowProfilePanelDiv.style.transform = "scale(0)"
+                setTimeout(() => {
+                    ShowProfilePanelDiv.style.visibility = "hidden"
+                }, 500);
+            }
+
+
+            setAction("POSTS")
+            setData({})
+        }
+    }
 
     return (
 
         <div className={styles.DashboardRight}>
-            <div ref={EditDetailsPanelRef} className='absolute invisible w-full h-full inset-0 z-30 transition-transform duration-500' style={{
-                transform: "scale(0)"
-            }}>
-                <EditDetails Data={MainData} setFetchOnCall={setFetchOnCall} />
+            <Posts UserData={UserData} />
+            <div ref={overlayRef} className='absolute top-0 left-0 hidden h-full w-full z-10 bg-[rgba(0,0,0,0.3)] transition-opacity duration-500' style={{ opacity: 0 }} onClick={(e) => CloseAllPanels(e)}>
+                <div ref={EditDetailsPanelRef} className='absolute invisible w-full h-full inset-0 z-30 transition-transform duration-500' style={{
+                    transform: "scale(0)"
+                }}>
+                    <EditDetails Data={MainData} BoxRef={BoxRef} setFetchOnCall={setFetchOnCall} />
+                </div>
+
+                <div ref={ShowProfilePanelRef} className='absolute invisible w-full h-full inset-0 z-30 transition-transform duration-500' style={{
+                    transform: "scale(0)"
+                }}>
+
+                    <ShowProfile Data={PassedData} BoxRef={BoxRef} setFetchOnCall={setFetchOnCall} UserData={MainData} />
+
+                </div>
             </div>
 
-            <div ref={ShowProfilePanelRef} className='absolute invisible w-full h-full inset-0 z-30 transition-transform duration-500' style={{
-                transform: "scale(0)"
-            }}>
-
-                <ShowProfile Data={PassedData} setFetchOnCall={setFetchOnCall} UserData={MainData} />
-
-            </div>
         </div>
     )
 }

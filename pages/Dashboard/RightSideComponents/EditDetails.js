@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import ChangeDataSections from './ChangeDataSections'
 import defaultProfilePicture from '../../../public/Assets/defaultProfilePicture.png'
 
-function EditDetails({ Data, setFetchOnCall }) {
+function EditDetails({ Data, setFetchOnCall, BoxRef }) {
     const [isImageLoading, setIsImageLoading] = useState(false)
 
     const [ReceivedData, setReceivedData] = useState({
@@ -194,7 +194,7 @@ function EditDetails({ Data, setFetchOnCall }) {
 
     return (
         <div className='w-full h-full flex flex-col items-center justify-center'>
-            <div className='w-[80%] h-[80%] bg-slate-600 scroll-smooth border-2 border-slate-800 rounded-2xl text-white flex flex-col justify-evenly items-center pt-2'>
+            <div className='w-[80%] h-[80%] bg-slate-600 scroll-smooth border-2 border-slate-800 rounded-2xl text-white flex flex-col justify-evenly items-center pt-2' ref={BoxRef}>
 
                 <h2 className={styles.heading + ' text-[20px] underline underline-offset-8 decoration-dashed'}>Edit Details</h2>
 
