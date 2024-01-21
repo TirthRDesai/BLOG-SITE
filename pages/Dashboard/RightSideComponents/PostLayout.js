@@ -305,11 +305,11 @@ function PostLayout({ CurrentPost }) {
                         </div>
                     </div>
                 </div>
-                <div className=" w-full h-full min-w-[200px] text-slate-600 font-bold text-base mt-8 flex flex-row items-start justify-start">
+                <div className=" w-full h-full min-w-[200px] text-slate-600 font-bold text-base mt-8 flex flex-row items-start justify-start pb-2">
 
                     {
-                        Post.ImagePart.length > 0 ?
-                            <Slider {...settings} className='aspect-[4/3] h-[80%] max-h-[80%] overflow-hidden'>
+                        Post.ImagePart.length == Post.ImageData.length && Post.ImagePart.length > 0 ?
+                            <Slider {...settings} className='aspect-[1] h-[70%] max-h-[80%] overflow-visible z-20'>
                                 {
                                     Post.ImageData.map((data, index) => {
                                         return (
