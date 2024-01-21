@@ -309,7 +309,7 @@ function PostLayout({ CurrentPost }) {
 
                     {
                         Post.ImagePart.length > 0 ?
-                            <Slider {...settings} className='aspect-[4/3] h-[80%] max-h-[80%] border-[3px] border-black overflow-hidden'>
+                            <Slider {...settings} className='aspect-[4/3] h-[80%] max-h-[80%] overflow-hidden'>
                                 {
                                     Post.ImageData.map((data, index) => {
                                         return (

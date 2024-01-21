@@ -6,6 +6,7 @@
 	min-height: 200px;
 	width: 100%;
 	display: flex;
+	border: 3px solid black;
 	min-height: 220px;
 }
 
