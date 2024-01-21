@@ -38,7 +38,6 @@ function PostLayout({ CurrentPost }) {
 
     useEffect(() => {
         if (CurrentPost) {
-            console.log(CurrentPost)
             setPost({
                 id: CurrentPost.id,
                 created_at: CurrentPost.created_at,
@@ -310,7 +309,7 @@ function PostLayout({ CurrentPost }) {
 
                     {
                         Post.ImagePart.length > 0 ?
-                            <Slider {...settings} className='aspect-[4/3] h-[70%] border-[3px] border-black overflow-hidden'>
+                            <Slider {...settings} className='aspect-[4/3] h-[80%] max-h-[80%] border-[3px] border-black overflow-hidden'>
                                 {
                                     Post.ImageData.map((data, index) => {
                                         return (
