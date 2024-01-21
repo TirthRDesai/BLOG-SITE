@@ -5,7 +5,7 @@ const nextConfig = {
   images: {
 
     domains: ['media.gcflearnfree.org', 'images.unsplash.com', "www.zdnet.com", "www.google.com"],
-  }
+  },
   // webpack: (config, { isServer }) => {
   //   config.module.rules.push({
   //     test: /\.(woff2|woff|ttf|eot)$/,

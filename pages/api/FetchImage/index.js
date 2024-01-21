@@ -36,7 +36,6 @@ function getImageBase64(url) {
     return new Promise((resolve, reject) => {
         fetch(url)
             .then(response => {
-                console.log(response)
                 if (response.ok) {
                     return response.arrayBuffer()
                 } else {
@@ -53,4 +52,9 @@ function getImageBase64(url) {
                 reject(error);
             });
     });
+}
+export const config = {
+    api: {
+        responseLimit: '8mb',
+    },
 }

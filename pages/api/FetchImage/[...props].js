@@ -50,3 +50,9 @@ async function getImageBase64(imageUrl) {
             });
     });
 }
+
+export const config = {
+    api: {
+        responseLimit: '10mb',
+    },
+}
