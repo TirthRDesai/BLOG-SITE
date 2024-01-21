@@ -8,15 +8,24 @@ export default async function handler(req, res) {
 
     const { username } = req.query
 
-    if (username != "") {
-        const { data, error } = await supabase
+    let data = ""
+    let error = ""
+
+    if (username != "*") {
+        const response = await supabase
             .from('Posts')
             .select('*')
             .eq('Username', username)
+
+        data = response.data
+        error = response.error
     } else {
-        const { data, error } = await supabase
+        const response = await supabase
             .from('Posts')
             .select('*')
+
+        data = response.data
+        error = response.error
     }
 
     if (error) {

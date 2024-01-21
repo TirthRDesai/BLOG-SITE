@@ -37,10 +37,10 @@ function Dashboard({ Username, NewUser }) {
             if (userData.ok) {
                 setUserData(JSON.parse(DecryptData(userData.data)))
             }
+            setFetchOnCall(false)
         }
         if (fetchOnCall) {
             fetchData()
-            setFetchOnCall(false)
         }
     }, [fetchOnCall, Username])
 
@@ -53,6 +53,8 @@ function Dashboard({ Username, NewUser }) {
                 }
             })
             const userData = await response.json()
+
+            console.log(userData)
 
             return JSON.parse(DecryptData(userData.data))
         }

@@ -1,4 +1,4 @@
-import { EncryptData } from "../EncryptingFunctions"
+import { DecryptData, EncryptData } from "../EncryptingFunctions"
 
 export class StaticFunctions {
 
@@ -7,14 +7,18 @@ export class StaticFunctions {
     }
 
     async GetData() {
-        const response = await fetch("/api/GetUserData/" + this.Username, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-        const data = await response.json()
-        return EncryptData(JSON.stringify(data))
+        if (this.Username != undefined && this.Username != "") {
+            const response = await fetch("/api/GetUserData/" + this.Username, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            const data = await response.json()
+            return EncryptData(JSON.stringify(data))
+        } else {
+            return EncryptData(JSON.stringify({ ok: false, message: "Empty Username" }))
+        }
     }
 
     async UpdateData(data) {
@@ -117,6 +121,9 @@ export class StaticFunctions {
     }
 
     async GetPosts(Username) {
+        if (Username == "") {
+            Username = "*"
+        }
         const response = await fetch("/api/GetPosts/" + Username, {
             method: "GET",
             headers: {

@@ -21,6 +21,8 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@supabase/ssr": "^0.0.10",
     "@supabase/supabase-js": "^2.39.1",
+    "axios": "^1.6.5",
+    "base64-img": "^1.0.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cookiejs": "^2.1.3",

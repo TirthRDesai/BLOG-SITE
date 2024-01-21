@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import StaticFunctions from '@/pages/api/StaticFunctions';
 import { DecryptData } from '@/pages/EncryptingFunctions';
 import PostLayout from './PostLayout';
 import styles from '../../../styles/Posts.module.css'
 
 function Posts({ UserData }) {
+
+    const mainRef = useRef(null)
+
     const [MainData, setMainData] = useState({
         id: "",
         created_at: "",
@@ -19,6 +22,8 @@ function Posts({ UserData }) {
         Posts: [],
         ImageData: ""
     })
+
+    const [FinalPostData, setFinalPostData] = useState([])
 
     const [Posts, setPosts] = useState({
         id: "",
@@ -40,27 +45,43 @@ function Posts({ UserData }) {
     })
 
     const [AllPosts, setAllPosts] = useState([])
+
+    const [Username, setUserame] = useState("")
+
     useEffect(() => {
-        async function fetchPosts() {
-            const staticFunctions = new StaticFunctions(MainData.Username)
-            const response = await staticFunctions.GetPosts("")
-            const data = await JSON.parse(DecryptData(response))
-            if (data.ok) {
-                setAllPosts(data.data)
-            }
+        if (MainData.Username != "" && MainData.Username != undefined) {
+            setUserame(MainData.Username)
         }
-        fetchPosts()
     }, [MainData])
 
     useEffect(() => {
-        if (AllPosts.length > 0) {
-            const TimestampSortedPosts = Posts.sort((a, b) => {
-                return b.created_at - a.created_at
-            })
-
-            setPosts(TimestampSortedPosts)
+        async function fetchPosts() {
+            console.log("FETCHING POSTS")
+            const staticFunctions = new StaticFunctions(Username)
+            const response = await staticFunctions.GetPosts("")
+            const data = await JSON.parse(DecryptData(response))
+            if (data.ok) {
+                setAllPosts(JSON.parse(DecryptData(data.data)))
+            }
         }
-    }, [AllPosts, Posts])
+        fetchPosts()
+    }, [Username])
+
+    useEffect(() => {
+        if (AllPosts.length > 0) {
+            for (let i = 0; i < AllPosts.length; i++) {
+                setPosts({
+                    id: AllPosts[i].id,
+                    created_at: AllPosts[i].created_at,
+                    Username: AllPosts[i].Username,
+                    TextPart: AllPosts[i].TextPart,
+                    Image1: AllPosts[i].Image1,
+                    Image2: AllPosts[i].Image2,
+                    Image3: AllPosts[i].Image3
+                })
+            }
+        }
+    }, [AllPosts])
 
     useEffect(() => {
         let ImagePart = []
@@ -68,6 +89,12 @@ function Posts({ UserData }) {
         if (Posts && Posts.id != "") {
             if (Posts.Image1 != "NOIMAGE") {
                 ImagePart.push(Posts.Image1)
+            }
+            if (Posts.Image2 != "NOIMAGE") {
+                ImagePart.push(Posts.Image2)
+            }
+            if (Posts.Image3 != "NOIMAGE") {
+                ImagePart.push(Posts.Image3)
             }
             setCurrentPost({
                 id: Posts.id,
@@ -81,10 +108,21 @@ function Posts({ UserData }) {
     }, [Posts, MainData])
 
     useEffect(() => {
-        if (currentPost && currentPost.id != "") {
+        if (currentPost.id != undefined && currentPost.id != null && currentPost.id != "" && currentPost.Username != Username) {
+            let present = false
+            for (let i = 0; i < FinalPostData.length; i++) {
+                if (FinalPostData[i].id == currentPost.id) {
+                    present = true
+                    break
+                }
+            }
+
+            if (!present) {
+                setFinalPostData([...FinalPostData, currentPost])
+            }
 
         }
-    }, [currentPost])
+    }, [currentPost, FinalPostData, Username])
 
     useEffect(() => {
         if (UserData) {
@@ -106,13 +144,14 @@ function Posts({ UserData }) {
     }, [UserData])
 
     return (
-        <div className={styles.PostsMain + ' h-full w-full overflow-scroll overflow-x-hidden'}>
-
-            <PostLayout />
-            <PostLayout />
-            <PostLayout />
-            <PostLayout />
-
+        <div className={styles.PostsMain + ' h-full w-full overflow-scroll overflow-x-hidden'} ref={mainRef}>
+            {
+                FinalPostData ?
+                    FinalPostData.map((data) => {
+                        { console.log(data) }
+                        return <PostLayout CurrentPost={data} key={data.id} />
+                    }) : ""
+            }
         </div>
     )
 }
