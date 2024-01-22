@@ -56,7 +56,6 @@ function Posts({ UserData }) {
 
     useEffect(() => {
         async function fetchPosts() {
-            console.log("FETCHING POSTS")
             const staticFunctions = new StaticFunctions(Username)
             const response = await staticFunctions.GetPosts("")
             const data = await JSON.parse(DecryptData(response))
@@ -68,61 +67,47 @@ function Posts({ UserData }) {
     }, [Username])
 
     useEffect(() => {
-        if (AllPosts.length > 0) {
-            for (let i = 0; i < AllPosts.length; i++) {
-                setPosts({
-                    id: AllPosts[i].id,
-                    created_at: AllPosts[i].created_at,
-                    Username: AllPosts[i].Username,
-                    TextPart: AllPosts[i].TextPart,
-                    Image1: AllPosts[i].Image1,
-                    Image2: AllPosts[i].Image2,
-                    Image3: AllPosts[i].Image3
-                })
-            }
-        }
-    }, [AllPosts])
+        for (let index = 0; index < AllPosts.length; index++) {
+            const Posts = AllPosts[index]
+            let ImagePart = []
+            if (Posts && Posts.id != "") {
+                if (Posts.Image1 != "NOIMAGE") {
+                    ImagePart.push(Posts.Image1)
+                }
+                if (Posts.Image2 != "NOIMAGE") {
+                    ImagePart.push(Posts.Image2)
+                }
+                if (Posts.Image3 != "NOIMAGE") {
+                    ImagePart.push(Posts.Image3)
+                }
 
-    useEffect(() => {
-        let ImagePart = []
+                let currentPost = {
+                    id: Posts.id,
+                    created_at: Posts.created_at,
+                    Username: Posts.Username,
+                    TextPart: Posts.TextPart,
+                    ImagePart: ImagePart,
+                    IsFollowed: false
+                }
+                let present = false
+                for (let i = 0; i < FinalPostData.length; i++) {
+                    if (FinalPostData[i].id == currentPost.id) {
+                        present = true
+                        break
+                    }
+                }
 
-        if (Posts && Posts.id != "") {
-            if (Posts.Image1 != "NOIMAGE") {
-                ImagePart.push(Posts.Image1)
-            }
-            if (Posts.Image2 != "NOIMAGE") {
-                ImagePart.push(Posts.Image2)
-            }
-            if (Posts.Image3 != "NOIMAGE") {
-                ImagePart.push(Posts.Image3)
-            }
-            setCurrentPost({
-                id: Posts.id,
-                created_at: Posts.created_at,
-                Username: Posts.Username,
-                TextPart: Posts.TextPart,
-                ImagePart: ImagePart,
-                IsFollowed: true ? MainData.Following.includes(Posts.Username) : false
-            })
-        }
-    }, [Posts, MainData])
+                if (!present) {
+                    let newData = FinalPostData
+                    newData.push(currentPost)
 
-    useEffect(() => {
-        if (currentPost.id != undefined && currentPost.id != null && currentPost.id != "" && currentPost.Username != Username) {
-            let present = false
-            for (let i = 0; i < FinalPostData.length; i++) {
-                if (FinalPostData[i].id == currentPost.id) {
-                    present = true
-                    break
+                    console.log(newData)
+
+                    setFinalPostData(newData)
                 }
             }
-
-            if (!present) {
-                setFinalPostData([...FinalPostData, currentPost])
-            }
-
         }
-    }, [currentPost, FinalPostData, Username])
+    }, [AllPosts, MainData, FinalPostData])
 
     useEffect(() => {
         if (UserData) {
@@ -148,7 +133,8 @@ function Posts({ UserData }) {
             {
                 FinalPostData ?
                     FinalPostData.map((data) => {
-                        { console.log(data) }
+
+                        console.log(FinalPostData)
                         return <PostLayout CurrentPost={data} key={data.id} />
                     }) : ""
             }

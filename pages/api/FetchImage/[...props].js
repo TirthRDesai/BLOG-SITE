@@ -23,11 +23,11 @@ export default async function handler(req, res) {
             try {
                 base64Data = await getImageBase64(data.publicUrl)
             } catch (e) {
-                console.log(e)
+                console.log(e.response)
+                return res.status(e.response.status).json({ message: e.response.statusText, ok: false })
             }
         } else {
             base64Data = "Default"
-
         }
 
         return res.status(200).json({ message: "Image found", ok: true, data: base64Data })
