@@ -21,6 +21,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@supabase/ssr": "^0.0.10",
     "@supabase/supabase-js": "^2.39.1",
+    "@vercel/speed-insights": "^1.0.5",
     "axios": "^1.6.5",
     "base64-img": "^1.0.4",
     "class-variance-authority": "^0.7.0",

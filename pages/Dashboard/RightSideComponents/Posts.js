@@ -25,25 +25,6 @@ function Posts({ UserData }) {
 
     const [FinalPostData, setFinalPostData] = useState([])
 
-    const [Posts, setPosts] = useState({
-        id: "",
-        created_at: "",
-        Username: "",
-        TextPart: "",
-        Image1: "",
-        Image2: "",
-        Image3: ""
-    })
-
-    const [currentPost, setCurrentPost] = useState({
-        id: "",
-        created_at: "",
-        Username: "",
-        TextPart: "",
-        ImagePart: [],
-        IsFollowed: false
-    })
-
     const [AllPosts, setAllPosts] = useState([])
 
     const [Username, setUserame] = useState("")

@@ -12,6 +12,16 @@ function PostLayout({ CurrentPost }) {
     const [getImage2, setGetImage2] = useState(false)
     const [getImage3, setGetImage3] = useState(false)
 
+    const [Post, setPost] = useState({
+        id: "",
+        created_at: "",
+        Username: "",
+        TextPart: "",
+        ImagePart: [],
+        ImageData: [],
+        IsFollowed: false
+    })
+
     const [PersonData, setPersonData] = useState({
         Username: "",
         ProfilePic: "",
@@ -105,7 +115,7 @@ function PostLayout({ CurrentPost }) {
             }
             setData()
         }
-    }, [getImage3])
+    }, [getImage3, Post])
 
     useEffect(() => {
         if (getImage2) {
@@ -227,6 +237,7 @@ function PostLayout({ CurrentPost }) {
                         const data = await response.json()
 
                         if (data.ok) {
+
                             setPersonData({
                                 Username: PersonData.Username,
                                 ProfilePic: PersonData.ProfilePic,
