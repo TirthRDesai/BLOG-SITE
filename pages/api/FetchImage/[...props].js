@@ -23,7 +23,6 @@ export default async function handler(req, res) {
             try {
                 base64Data = await getImageBase64(data.publicUrl)
             } catch (e) {
-                console.log(e.response)
                 return res.status(500).json({ message: e.response.statusText, ok: false })
             }
         } else {

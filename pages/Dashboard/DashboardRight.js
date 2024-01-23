@@ -194,12 +194,8 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
     }, [Action, Data, Panel, Username])
 
     const CloseAllPanels = (e) => {
-
-        console.log(BoxCoordinates)
-
         const ClickedCoordinates = [e.clientX, e.clientY]
 
-        console.log(ClickedCoordinates)
         if (!(ClickedCoordinates[0] >= BoxCoordinates.initial[0] && ClickedCoordinates[0] <= BoxCoordinates.final[0] && ClickedCoordinates[1] >= BoxCoordinates.initial[1] && ClickedCoordinates[1] <= BoxCoordinates.final[1])) {
 
 
@@ -239,7 +235,7 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
             <div
                 className='z-30 h-[100vh]'
             >
-                <Posts UserData={UserData} />
+                <Posts UserData={UserData} AllPosts={[]} />
             </div>
 
             <div ref={overlayRef} className='absolute top-0 left-0 hidden h-full w-full border-4 border-slate-600 z-40 bg-[rgba(0,0,0,0.8)] transition-opacity duration-500' style={{ opacity: 0 }} >

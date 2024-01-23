@@ -13,7 +13,6 @@ export default async function handler(req, res) {
             .select('*')
             .eq('Username', username)
 
-
         if (error) {
             return res.status(401).json({ message: error.message, ok: false })
         }

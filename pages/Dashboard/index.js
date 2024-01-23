@@ -19,7 +19,7 @@ function Dashboard({ Username, NewUser }) {
 
     useEffect(() => {
         if (NewUser == "true" || NewUser == true) {
-            console.log("HERE")
+            // console.log("HERE")
 
         }
     }, [NewUser])
@@ -53,8 +53,6 @@ function Dashboard({ Username, NewUser }) {
                 }
             })
             const userData = await response.json()
-
-            console.log(userData)
 
             return JSON.parse(DecryptData(userData.data))
         }
