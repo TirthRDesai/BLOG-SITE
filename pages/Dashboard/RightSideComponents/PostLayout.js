@@ -26,7 +26,7 @@ function PostLayout({ CurrentPost }) {
         Username: "",
         ProfilePic: "",
         Name: "",
-        ImageData: "../../Assets/DefaultProfilePicture.png"
+        ImageData: "../../Assets/defaultProfilePicture.png"
     })
 
 
@@ -249,7 +249,7 @@ function PostLayout({ CurrentPost }) {
                                 Username: PersonData.Username,
                                 ProfilePic: PersonData.ProfilePic,
                                 Name: PersonData.Name,
-                                ImageData: "../../../Assets/DefaultProfilePicture.png"
+                                ImageData: "../../../Assets/defaultProfilePicture.png"
                             })
                         }
                     }
@@ -260,7 +260,7 @@ function PostLayout({ CurrentPost }) {
                         Username: PersonData.Username,
                         ProfilePic: PersonData.ProfilePic,
                         Name: PersonData.Name,
-                        ImageData: "../../../Assets/DefaultProfilePicture.png"
+                        ImageData: "../../../Assets/defaultProfilePicture.png"
                     })
                 }
             }
@@ -281,7 +281,7 @@ function PostLayout({ CurrentPost }) {
                         {
                             PersonData.ImageData != "" ?
                                 <Image class="block h-[48px] aspect-square w-[48px] rounded-full" alt='ProfilePicture' src={PersonData.ImageData} width={400} height={400} unoptimized /> :
-                                <Image class="block h-[48px] aspect-square w-[48px] rounded-full" alt='ProfilePicture' src="../../Assets/DefaultProfilePicture.png" width={400} height={400} unoptimized />
+                                <Image class="block h-[48px] aspect-square w-[48px] rounded-full" alt='ProfilePicture' src="../../Assets/defaultProfilePicture.png" width={400} height={400} unoptimized />
                         }
 
                     </div>
