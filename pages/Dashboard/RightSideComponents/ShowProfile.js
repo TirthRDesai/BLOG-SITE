@@ -175,53 +175,51 @@ function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef }) {
 
 
     return (
-        <div className='w-full h-full flex flex-col items-center justify-center '>
-            <div className={' w-[80%] h-[80%] bg-slate-600 scroll-smooth border-4 border-slate-800 rounded-2xl text-white flex flex-col justify-evenly items-center relative overflow-hidden'} ref={BoxRef}>
-                <div className={styles.FriendProfileContainer} ref={bgImgRef}></div>
-                <div className='text-red-600 bg-[rgba(255,255,255,0.65)] rounded-full w-[160px] h-[160px] z-30 overflow-hidden'>
-                    <Image src={defaultProfilePicture} alt='ProfPic' className='w-full h-full object-cover border-2 border-black rounded-full' ref={smallImgRef} unoptimized />
-                </div>
-                <div className='absolute h-full w-full z-30' id='stats-grid'>
-                    <div className='w-full place-items-center h-full grid grid-cols-2 grid-rows-2 gap-0'>
-                        <div className='statscontainer w-[70%] h-[70%] flex flex-col items-start px-2 justify-center bg-[rgba(0,0,0,0.6)] rounded-lg scale-[0.8] transition-transform duration-500'>
-                            <span className='mt-2'><span className=' font-bold'>Name:</span> <br /><span className='ml-4'>{PassedData.Name}</span></span>
-                            <span className='mt-2 mb-2'><span className=' font-bold'>Username:</span> <br /><span className='ml-4'>@{PassedData.Username}</span></span>
-                        </div>
-                        <div className='statscontainer w-[70%] h-[70%] flex flex-col items-center px-2 justify-center bg-[rgba(0,0,0,0.6)] rounded-lg scale-[0.8] transition-transform duration-500'>
-                            <span className='mt-2 text-[24px]'><span className=' font-semibold '>Followers: </span>{PassedData.Followers ? (new Set(PassedData.Followers)).size : 0}</span>
-                            <span className='mt-2 text-[24px] mb-2'><span className=' font-semibold'>Following:</span> {PassedData.Followers ? PassedData.Following.length : 0}</span>
-
-                        </div>
-                        <div className='statscontainer w-[70%] h-[70%] flex flex-col items-start px-2 justify-start bg-[rgba(0,0,0,0.6)] rounded-lg scale-[0.8] transition-transform duration-500'>
-                            <span className='mt-4'>
-                                <span className=' font-bold'>Bio:</span> <br /><span className='ml-2 text-justify line-clamp-4 mr-2'>{PassedData.Bio}</span>
-                            </span>
-                        </div>
-                        <div className='statscontainer w-[70%] h-[70%] flex flex-col items-center px-2 justify-center gap-4 bg-[rgba(0,0,0,0.6)] rounded-lg scale-[0.8] transition-transform duration-500'>
-
-                            {
-                                isFollowed ?
-                                    <Button className='w-[80%] text-[16px] bg-red-500 hover:bg-red-700' onClick={(e) => UnfollowBtn(e)}>
-                                        {
-                                            isUnfollowing ?
-                                                <span className={styles.loader}></span> :
-                                                "Unfollow"
-                                        }
-                                    </Button> :
-                                    <Button className='w-[80%] text-[16px] bg-green-500 hover:bg-green-700' onClick={(e) => { FollowBtn(e) }}>
-                                        {
-                                            isFollowing ?
-                                                <span className={styles.loader}></span> :
-                                                "Follow"
-                                        }
-                                    </Button>
-                            }
-
-                            <Button className='bg-blue-500 w-[80%] text-[16px] hover:bg-blue-700'>View Posts</Button>
-
-                        </div>
+        <div className={' w-[80%] h-[80%] bg-slate-600 scroll-smooth border-4 border-slate-800 rounded-2xl text-white flex flex-col justify-evenly items-center relative overflow-hidden'} ref={BoxRef} id='ShowProfilePanel'>
+            <div className={styles.FriendProfileContainer} ref={bgImgRef}></div>
+            <div className='text-red-600 bg-[rgba(255,255,255,0.65)] rounded-full w-[160px] h-[160px] z-30 overflow-hidden'>
+                <Image src={defaultProfilePicture} alt='ProfPic' className='w-full h-full object-cover border-2 border-black rounded-full' ref={smallImgRef} unoptimized />
+            </div>
+            <div className='absolute h-full w-full z-30' id='stats-grid'>
+                <div className='w-full place-items-center h-full grid grid-cols-2 grid-rows-2 gap-0'>
+                    <div className='statscontainer w-[70%] h-[70%] flex flex-col items-start px-2 justify-center bg-[rgba(0,0,0,0.6)] rounded-lg scale-[0.8] transition-transform duration-500'>
+                        <span className='mt-2'><span className=' font-bold'>Name:</span> <br /><span className='ml-4'>{PassedData.Name}</span></span>
+                        <span className='mt-2 mb-2'><span className=' font-bold'>Username:</span> <br /><span className='ml-4'>@{PassedData.Username}</span></span>
+                    </div>
+                    <div className='statscontainer w-[70%] h-[70%] flex flex-col items-center px-2 justify-center bg-[rgba(0,0,0,0.6)] rounded-lg scale-[0.8] transition-transform duration-500'>
+                        <span className='mt-2 text-[24px]'><span className=' font-semibold '>Followers: </span>{PassedData.Followers ? (new Set(PassedData.Followers)).size : 0}</span>
+                        <span className='mt-2 text-[24px] mb-2'><span className=' font-semibold'>Following:</span> {PassedData.Followers ? PassedData.Following.length : 0}</span>
 
                     </div>
+                    <div className='statscontainer w-[70%] h-[70%] flex flex-col items-start px-2 justify-start bg-[rgba(0,0,0,0.6)] rounded-lg scale-[0.8] transition-transform duration-500'>
+                        <span className='mt-4'>
+                            <span className=' font-bold'>Bio:</span> <br /><span className='ml-2 text-justify line-clamp-4 mr-2'>{PassedData.Bio}</span>
+                        </span>
+                    </div>
+                    <div className='statscontainer w-[70%] h-[70%] flex flex-col items-center px-2 justify-center gap-4 bg-[rgba(0,0,0,0.6)] rounded-lg scale-[0.8] transition-transform duration-500'>
+
+                        {
+                            isFollowed ?
+                                <Button className='w-[80%] text-[16px] bg-red-500 hover:bg-red-700' onClick={(e) => UnfollowBtn(e)}>
+                                    {
+                                        isUnfollowing ?
+                                            <span className={styles.loader}></span> :
+                                            "Unfollow"
+                                    }
+                                </Button> :
+                                <Button className='w-[80%] text-[16px] bg-green-500 hover:bg-green-700' onClick={(e) => { FollowBtn(e) }}>
+                                    {
+                                        isFollowing ?
+                                            <span className={styles.loader}></span> :
+                                            "Follow"
+                                    }
+                                </Button>
+                        }
+
+                        <Button className='bg-blue-500 w-[80%] text-[16px] hover:bg-blue-700'>View Posts</Button>
+
+                    </div>
+
                 </div>
             </div>
         </div>

@@ -9,4 +9,5 @@
 .PostsMain::-webkit-scrollbar-thumb {
 	background: white;
 	border-radius: 20px;
+	cursor: pointer;
 }

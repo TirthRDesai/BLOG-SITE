@@ -53,7 +53,7 @@ function PostLayout({ CurrentPost }) {
     const settings = {
         dots: true,
         lazyLoad: true,
-        arrows: true,
+        arrows: false,
         infinite: true,
         speed: 1000,
         slidesToShow: 1,
@@ -274,7 +274,7 @@ function PostLayout({ CurrentPost }) {
 
 
     return (
-        <div className="flex flex-col h-fit w-full justify-center items-center mt-6">
+        <div className="flex flex-col h-fit w-full justify-center items-center">
             <div className="PostBox border-2 border-slate-600 max-w-[90%] w-[90%] min-w-[60%] flex flex-col justify-start py-4 items-start px-6 rounded-lg h-[350px] bg-[#F8F8FF]">
                 <div className="HeaderBar flex flex-row justify-start items-center w-full">
                     <div className="ProfilePic flex flex-row justify-center items-center border-2 border-black rounded-full">
@@ -309,7 +309,7 @@ function PostLayout({ CurrentPost }) {
 
                     {
                         Post.ImagePart.length == Post.ImageData.length && Post.ImagePart.length > 0 ?
-                            <Slider {...settings} className='aspect-[1] h-[70%] max-h-[80%] overflow-visible z-20'>
+                            <Slider {...settings} className='aspect-[1] h-[70%] max-h-[80%] overflow-visible'>
                                 {
                                     Post.ImageData.map((data, index) => {
                                         return (
@@ -321,7 +321,7 @@ function PostLayout({ CurrentPost }) {
                     }
 
                     <div className="TextPart w-full h-full min-w-[200px] text-slate-600 font-bold text-base mt-2 flex flex-row items-start justify-start ml-4">
-                        <p className={styles.comment + " text-slate-600 font-bold line-clamp-4 text-base text-justify leading-6 max-h-[200px] overflow-scroll pr-4"} onClick={(e) => {
+                        <p className={styles.comment + " text-slate-600 font-bold line-clamp-4 text-base text-justify leading-6 max-h-[200px] overflow-scroll pr-4 cursor-text "} onClick={(e) => {
 
                             let className = e.target.className.toString();
                             if (className.includes("line-clamp-4")) {
@@ -329,6 +329,7 @@ function PostLayout({ CurrentPost }) {
                                 e.target.style.overflow = "scroll"
                             }
                             else {
+                                e.target.scrollTop = 0
                                 e.target.className = className.replace("line-clamp-none", "line-clamp-4")
                                 e.target.style.overflow = "hidden"
                             }

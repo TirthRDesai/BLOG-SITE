@@ -193,39 +193,39 @@ function EditDetails({ Data, setFetchOnCall, BoxRef }) {
     }, [])
 
     return (
-        <div className='w-full h-full flex flex-col items-center justify-center'>
-            <div className='w-[80%] h-[80%] bg-slate-600 scroll-smooth border-2 border-slate-800 rounded-2xl text-white flex flex-col justify-evenly items-center pt-2' ref={BoxRef}>
 
-                <h2 className={styles.heading + ' text-[20px] underline underline-offset-8 decoration-dashed'}>Edit Details</h2>
+        <div className='w-[80%] h-[80%] bg-slate-600 scroll-smooth border-2 border-slate-800 rounded-2xl text-white flex flex-col justify-evenly items-center pt-2' ref={BoxRef} id='EditDetailsPanel'>
 
-                <div className='w-full h-full flex flex-row items-evenly justify-center'>
+            <h2 className={styles.heading + ' text-[20px] underline underline-offset-8 decoration-dashed'}>Edit Details</h2>
 
-                    <div className='w-[30%] h-full flex flex-col items-center justify-center'>
-                        <Image width={400} height={400} alt='profilepicture' className='bg-slate-300 aspect-square w-[120px] max-w-full rounded-full border-2 border-black object-cover' id='edit_details_user_pfp' src={defaultProfilePicture} unoptimized />
+            <div className='w-full h-full flex flex-row items-evenly justify-center'>
 
-                        <div className='w-full h-fit mt-4 flex flex-col items-center justify-center'>
-                            <h2 className={styles.heading + ' leading-[32px] text-[20px]'}></h2>
+                <div className='w-[30%] h-full flex flex-col items-center justify-center'>
+                    <Image width={400} height={400} alt='profilepicture' className='bg-slate-300 aspect-square w-[120px] max-w-full rounded-full border-2 border-black object-cover' id='edit_details_user_pfp' src={defaultProfilePicture} unoptimized />
 
-                            {
-                                isImageLoading ?
-                                    <button className={styles.loader}></button> :
-                                    <Button onClick={() => ChangeProfilePic()}>
-                                        Change
-                                    </Button>
-                            }
-                        </div>
+                    <div className='w-full h-fit mt-4 flex flex-col items-center justify-center'>
+                        <h2 className={styles.heading + ' leading-[32px] text-[20px]'}></h2>
+
+                        {
+                            isImageLoading ?
+                                <button className={styles.loader}></button> :
+                                <Button onClick={() => ChangeProfilePic()}>
+                                    Change
+                                </Button>
+                        }
                     </div>
+                </div>
 
-                    <div className='w-[60%] h-full flex flex-col items-start justify-center gap-2' >
+                <div className='w-[60%] h-full flex flex-col items-start justify-center gap-2' >
 
-                        <ChangeDataSections label={"Name"} defaultValue={ReceivedData.Name} action={changeData} />
-                        <ChangeDataSections label={"Email"} defaultValue={ReceivedData.Email} action={changeData} />
-                        <ChangeDataSections label={"Bio"} defaultValue={ReceivedData.Bio} action={changeData} />
-                        <ChangeDataSections label={"Password"} defaultValue={ReceivedData.Password} action={changeData} />
-                    </div>
+                    <ChangeDataSections label={"Name"} defaultValue={ReceivedData.Name} action={changeData} />
+                    <ChangeDataSections label={"Email"} defaultValue={ReceivedData.Email} action={changeData} />
+                    <ChangeDataSections label={"Bio"} defaultValue={ReceivedData.Bio} action={changeData} />
+                    <ChangeDataSections label={"Password"} defaultValue={ReceivedData.Password} action={changeData} />
                 </div>
             </div>
         </div>
+
     )
 }
 

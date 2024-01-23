@@ -1,4 +1,4 @@
-import { EncryptData } from "@/pages/EncryptingFunctions"
+
 import { createClient } from "@supabase/supabase-js"
 
 
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
                 base64Data = await getImageBase64(data.publicUrl)
             } catch (e) {
                 console.log(e.response)
-                return res.status(e.response.status).json({ message: e.response.statusText, ok: false })
+                return res.status(500).json({ message: e.response.statusText, ok: false })
             }
         } else {
             base64Data = "Default"
@@ -45,7 +45,7 @@ async function getImageBase64(imageUrl) {
                 resolve(base64Image)
             })
             .catch(error => {
-                console.error(`Error fetching image: ${error.message}`);
+                console.log(`Error fetching image: ${error.message}`);
                 reject(error);
             });
     });
