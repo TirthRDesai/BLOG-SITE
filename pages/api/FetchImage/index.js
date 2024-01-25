@@ -13,7 +13,6 @@ export default async function handler(req, res) {
         const { Filename, Path } = DecryptedData
         const { data, error } = supabase.storage.from(Path).getPublicUrl(Filename)
 
-        console.log(data)
 
         if (error) {
             return res.status(401).json({ message: error, ok: false })
@@ -24,7 +23,6 @@ export default async function handler(req, res) {
         } else {
             base64Data = "Default"
         }
-        console.log(base64Data)
 
         return res.status(200).json({ message: "Image found", ok: true, data: base64Data })
     } catch (e) {

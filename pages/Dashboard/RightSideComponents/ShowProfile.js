@@ -7,7 +7,7 @@ import StaticFunctions from '@/pages/api/StaticFunctions'
 import { DecryptData } from '@/pages/EncryptingFunctions'
 import Swal from 'sweetalert2'
 
-function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef }) {
+function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef, PostsUser }) {
     const bgImgRef = useRef(null)
     const smallImgRef = useRef(null)
 
@@ -128,7 +128,6 @@ function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef }) {
     }
 
     const FollowBtn = async (e) => {
-        console.log(PassedData.Followers)
         e.target.style.pointerEvents = "none"
 
         setIsFollowing(true)

@@ -203,7 +203,6 @@ export async function getServerSideProps(context) {
     const isLoggedIn = serverSideCookie.getCustomCookie("isLoggedIn")
 
     if (isLoggedIn == "Yes") {
-        console.log("HERE")
         return {
             redirect: {
                 destination: "/Dashboard",

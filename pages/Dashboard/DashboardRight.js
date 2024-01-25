@@ -8,18 +8,11 @@ import { ClientSideCookies } from '../CustomCookie'
 
 function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, setData }) {
 
-
-    const [isPostsLoaded, setIsPostsLoaded] = useState(false)
-
     const [Panel, setPanel] = useState('POSTS')
-
     const EditDetailsPanelRef = useRef(null)
     const ShowProfilePanelRef = useRef(null)
-
     const overlayRef = useRef(null)
-
     const BoxRef = useRef(null)
-
     const [MainData, setMainData] = useState({
         id: "",
         created_at: "",
@@ -34,11 +27,12 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
         Posts: [],
         ImageData: ""
     })
-
     const [BoxCoordinates, setBoxCoordinates] = useState({
         initial: [],
         final: []
     })
+    const [postsUser, setPostsUser] = useState("*")
+
 
     useEffect(() => {
         if (BoxRef.current) {
@@ -222,21 +216,117 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
                     ShowProfilePanelDiv.style.visibility = "hidden"
                 }, 500);
             }
-
-
             setAction("POSTS")
             setData({})
+        }
+    }
+
+    const slideInAnimation = (elem, duration, fill, delay) => {
+        elem.animate([
+            { transform: 'translateY(-60%)', opacity: "0" },
+            { transform: 'translateY(0%)', opacity: "1" }
+        ], {
+            duration: duration,
+            fill: fill,
+            delay: delay,
+            iterations: 1
+        })
+
+        setTimeout(() => {
+            elem.classList.remove("invisible")
+        }, delay)
+    }
+
+    const slideOutAnimation = (elem, duration, fill, delay) => {
+        elem.animate([
+            { transform: 'translateY(0%)', opacity: "1" },
+            { transform: 'translateY(-60%)', opacity: "0" }
+        ], {
+            duration: duration,
+            fill: fill,
+            delay: delay,
+            iterations: 1
+        })
+
+        setTimeout(() => {
+            elem.classList.add("invisible")
+        }, delay + duration)
+    }
+
+    const resetAll = (barItems, items) => {
+
+        barItems.classList.remove("flex")
+        barItems.classList.add("hidden")
+
+        for (let i = 0; i < items.length; i++) {
+            items[i].classList.add("invisible")
+        }
+
+    }
+
+
+    const barsClicked = () => {
+        const inp =
+            document.getElementsByClassName(styles.checkIcon)[0]
+        const barItems = document.getElementById("barItems")
+        const items = barItems.children
+
+        if (inp.checked) {
+            inp.checked = false
+
+            for (let i = 0; i < items.length; i++) {
+                slideOutAnimation(items[2 - i], 500, "forwards", i * 300)
+            }
+
+            setTimeout(() => {
+                barItems.classList.remove("flex")
+                barItems.classList.add("hidden")
+            }, 1600)
+        }
+        else {
+            inp.checked = true
+            resetAll(barItems, items)
+
+            barItems.classList.remove("hidden")
+            barItems.classList.add("flex")
+
+            for (let i = 0; i < items.length; i++) {
+                slideInAnimation(items[i], 500, "forwards", i * 300)
+            }
         }
     }
 
     return (
 
         <div className={styles.DashboardRight}>
-            <div
-                className='z-30 h-[100vh]'
-            >
-                <Posts UserData={UserData} AllPosts={[]} />
+
+            <div className=' absolute flex flex-col justify-center items-end top-4 right-4 h-fit w-fit' >
+                <div className='relative h-fit w-fit bg-black py-3 rounded-xl cursor-pointer px-2' onClick={() => barsClicked()}>
+                    <input className={styles.checkIcon + " absolute invisible z-20 w-full h-full"} name="check-icon" type="checkbox" />
+                    <label className={styles.iconMenu + " w-full h-full z-10"} for="check-icon" >
+                        <div className={styles.bar}></div>
+                        <div className={styles.bar}></div>
+                        <div className={styles.bar}></div>
+                    </label>
+                </div>
+                <div className=' flex-col gap-2 mt-2 hidden' id='barItems'>
+                    <Button className='w-full invisible opacity-30'>Add Post</Button>
+                    <Button className='w-full invisible opacity-30'
+                        onClick={() => {
+                            setPostsUser(Username)
+                        }}
+                    >Your Posts</Button>
+                    <Button className='w-full invisible opacity-30'>Delete Account</Button>
+                </div>
             </div>
+
+            {
+                <div
+                    className='z-30 h-[100vh]'
+                >
+                    <Posts UserData={UserData} PostsUser={postsUser} />
+                </div>
+            }
 
             <div ref={overlayRef} className='absolute top-0 left-0 hidden h-full w-full border-4 border-slate-600 z-40 bg-[rgba(0,0,0,0.8)] transition-opacity duration-500' style={{ opacity: 0 }} >
             </div>
@@ -250,9 +340,7 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
             <div ref={ShowProfilePanelRef} className='w-auto h-auto flex justify-center items-center absolute invisible inset-0 z-50 transition-transform duration-500' style={{
                 transform: "scale(0)"
             }} onClick={(e) => CloseAllPanels(e)}>
-
-                <ShowProfile Data={PassedData} BoxRef={BoxRef} setFetchOnCall={setFetchOnCall} UserData={MainData} />
-
+                <ShowProfile Data={PassedData} BoxRef={BoxRef} setFetchOnCall={setFetchOnCall} UserData={MainData} PostsUser={postsUser} />
             </div>
 
         </div>
