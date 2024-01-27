@@ -6,6 +6,7 @@ import Swal from 'sweetalert2'
 import { Button } from '@/components/ui/button'
 import ChangeDataSections from './ChangeDataSections'
 import defaultProfilePicture from '../../../public/Assets/defaultProfilePicture.png'
+import axios from 'axios'
 
 function EditDetails({ Data, setFetchOnCall, BoxRef }) {
     const [isImageLoading, setIsImageLoading] = useState(false)
@@ -51,15 +52,16 @@ function EditDetails({ Data, setFetchOnCall, BoxRef }) {
 
                 fileInput.onchange = function (e) {
                     const file = fileInput.files[0]
-                    const reader = new FileReader()
-                    reader.onload = function () {
-                        const dataURL = reader.result
-                        const imagedata = dataURL.split(",")
-                        const base64 = imagedata[1]
-                        resolve(base64)
-                    }
+                    // const reader = new FileReader()
+                    // reader.onload = function () {
+                    //     const dataURL = reader.result
+                    //     const imagedata = dataURL.split(",")
+                    //     const base64 = imagedata[1]
+                    //     resolve(base64)
+                    // }
 
-                    reader.readAsDataURL(file)
+                    // reader.readAsDataURL(file)
+                    resolve(file)
                 }
                 fileInput.click()
             } catch (e) {
@@ -68,33 +70,47 @@ function EditDetails({ Data, setFetchOnCall, BoxRef }) {
             }
         });
     }
-
+    const byteSize = str => new Blob([str]).size;
     const ChangeProfilePic = async () => {
         setIsImageLoading(true)
-        const fileBase64Data = await OpenFileDialog()
+        const file = await OpenFileDialog()
+
+        if (file) {
+            let fileFormData = new FormData()
+            fileFormData.append('Username', ReceivedData.Username)
+            fileFormData.append('FileData', file)
+            fileFormData.append('Filename', EncryptData(ReceivedData.ProfilePic + ".jpg"))
+            fileFormData.append('Bucket', EncryptData('profile-pictures'))
 
 
-        if (fileBase64Data) {
-            const AllData = {
-                Username: ReceivedData.username,
-                Base64Data: fileBase64Data,
-                Filename: ReceivedData.ProfilePic + ".jpg",
-                Bucket: "profile-pictures",
+            const base64 = await new Promise((resolve, reject) => {
+                try {
+                    const reader = new FileReader()
 
-            }
-            const response = await fetch('/api/UploadFile', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    AllData: EncryptData(JSON.stringify(AllData))
-                })
+                    reader.onload = function () {
+                        const dataURL = reader.result
+                        const imageData = "data:image/jpeg;base64," + dataURL.split(",")[1]
+                        resolve(imageData)
+                    }
+
+                    reader.readAsDataURL(file)
+                } catch (e) {
+                    reject(e)
+                }
             })
-            const data = await response.json()
+
+            const response = await axios.post("/api/UploadFile", fileFormData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+            const data = await response.data
+
             if (data.ok) {
                 const output = document.getElementById('user_profile_pic')
-                output.src = "data:image/png;base64," + fileBase64Data
+                const edit_output = document.getElementById('edit_details_user_pfp')
+                edit_output.src = base64
+                output.src = base64
                 setIsImageLoading(false)
                 const Toast = Swal.mixin({
                     toast: true,
@@ -124,8 +140,6 @@ function EditDetails({ Data, setFetchOnCall, BoxRef }) {
                     title: 'Profile Picture Change Failed'
                 })
             }
-
-
         }
 
     }

@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 
-const CryptoJS = require("crypto-js")
+var base64Img = require('base64-img');
 
 export default async function handler(req, res) {
     try {
@@ -8,7 +8,7 @@ export default async function handler(req, res) {
         const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
 
-        const { data, error } = await supabase.from("UserData").select(
+        let { data, error } = await supabase.from("UserData").select(
             `
             Username,
             Name,
@@ -27,21 +27,23 @@ export default async function handler(req, res) {
             return res.status(401).json({ message: "User not found", ok: false })
         }
 
-        const url = supabase.storage.from("profile-pictures").getPublicUrl(data[0].ProfilePic + ".jpg").data.publicUrl
+        const response = await supabase.storage.from("profile-pictures").createSignedUrl(data[0].ProfilePic + ".jpg", 300)
 
-        let imageData = ""
+        const errorSignedURL = response.error
 
-        if (url) {
-            imageData = await getImageBase64(url)
-        } else {
-            imageData = "Default"
+        if (errorSignedURL) {
+            if (errorSignedURL.message == "Object not found") {
+                data[0].ImageData = "Default"
+                return await res.status(200).json({ message: "User found", ok: true, data: data[0] })
+            }
+            else {
+                return res.status(401).json({ message: errorSignedURL.message, ok: false })
+            }
         }
 
-        data[0].ImageData = imageData
+        const signedURL = response.data.signedUrl
 
-
-        data[0].ProfilePic = CryptoJS.AES.encrypt(data[0].ProfilePic, process.env.NEXT_PUBLIC_KEY).toString()
-
+        data[0].ImageData = signedURL
 
         return await res.status(200).json({ message: "User found", ok: true, data: data[0] })
     }
@@ -49,25 +51,4 @@ export default async function handler(req, res) {
         console.log(e)
         return res.status(401).json({ message: e.message, ok: false })
     }
-}
-function getImageBase64(url) {
-    return new Promise((resolve, reject) => {
-        fetch(url)
-            .then(response => {
-                if (response.ok) {
-                    return response.arrayBuffer()
-                } else {
-                    resolve("Default")
-                }
-            })
-            .then(buffer => {
-                var base64Data = btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
-
-                resolve(base64Data);
-            })
-            .catch(error => {
-                console.error('Error fetching the image:', error);
-                reject(error);
-            });
-    });
 }

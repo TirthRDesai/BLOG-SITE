@@ -1,28 +1,52 @@
 import { createClient } from "@supabase/supabase-js"
+import { Formidable } from 'formidable'
 import { DecryptData } from "../EncryptingFunctions"
-
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+import fs from 'fs'
+import path from 'path'
 
 export default async function handler(req, res) {
-    const { AllData } = req.body
+    if (req.method === "POST") {
+        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
-    const DecryptedData = JSON.parse(DecryptData(AllData))
 
-    const { Username, Base64Data, Filename, Bucket } = DecryptedData
+        const { err, fields, files } = await new Promise((resolve, reject) => {
+            const form = new Formidable()
+            form.parse(req, (err, fields, files) => {
+                if (err) reject(err)
+                resolve({ fields, files })
+            })
+        })
 
-    const fileData = await convertBase64toFileFormat(Base64Data)
+        if (err) {
+            return res.status(500).json({ message: "Error Occurred", ok: false })
+        }
 
-    const { data, error } = await supabase.storage.from(Bucket).upload(Filename, fileData, {
-        cacheControl: '3600',
-        upsert: true
-    })
+        let { Username, Filename, Bucket } = fields
 
-    if (error) {
-        console.log(error)
-        return res.status(401).json({ message: error, ok: false })
+        let { FileData } = files
+
+        Filename = DecryptData(Filename[0])
+        Bucket = DecryptData(Bucket[0])
+        FileData = FileData[0]
+        Username = Username[0]
+
+        const { data, error } = await supabase.storage.from(Bucket).upload(Filename, (require('fs').createReadStream(FileData.filepath)), {
+            cacheControl: '3600',
+            contentType: 'image/jpeg',
+            duplex: 'half',
+            upsert: true
+        })
+
+        if (error) {
+            console.log(error)
+            return res.status(401).json({ message: error, ok: false })
+        }
+
+
+        return res.status(200).json({ message: "Image uploaded", ok: true })
+    } else {
+        return res.status(401).json({ message: "Invalid Request", ok: false })
     }
-
-    return res.status(200).json({ message: "Image uploaded", ok: true })
 }
 
 async function convertBase64toFileFormat(byteString) {
@@ -39,4 +63,10 @@ async function convertBase64toFileFormat(byteString) {
     const file = new File([byteArray], "image.jpg", { type: "image/jpeg" })
 
     return file
+}
+
+export const config = {
+    api: {
+        bodyParser: false
+    }
 }

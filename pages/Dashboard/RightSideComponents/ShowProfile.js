@@ -7,7 +7,7 @@ import StaticFunctions from '@/pages/api/StaticFunctions'
 import { DecryptData } from '@/pages/EncryptingFunctions'
 import Swal from 'sweetalert2'
 
-function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef, PostsUser }) {
+function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef }) {
     const bgImgRef = useRef(null)
     const smallImgRef = useRef(null)
 
@@ -58,10 +58,9 @@ function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef, PostsUser }) {
 
             smallImage.src = "../../Assets/defaultProfilePicture.png"
         } else {
-
             if (PassedData.ImageData) {
-                image.style.backgroundImage = `url('data:image/png;base64,${PassedData.ImageData}')`
-                smallImage.src = `data:image/png;base64,${PassedData.ImageData}`
+                image.style.backgroundImage = `url('${PassedData.ImageData}')`
+                smallImage.src = PassedData.ImageData
             }
         }
     }, [bgImgRef, smallImgRef, PassedData])
@@ -177,7 +176,7 @@ function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef, PostsUser }) {
         <div className={' w-[80%] h-[80%] bg-slate-600 scroll-smooth border-4 border-slate-800 rounded-2xl text-white flex flex-col justify-evenly items-center relative overflow-hidden'} ref={BoxRef} id='ShowProfilePanel'>
             <div className={styles.FriendProfileContainer} ref={bgImgRef}></div>
             <div className='text-red-600 bg-[rgba(255,255,255,0.65)] rounded-full w-[160px] h-[160px] z-30 overflow-hidden'>
-                <Image src={defaultProfilePicture} alt='ProfPic' className='w-full h-full object-cover border-2 border-black rounded-full' ref={smallImgRef} unoptimized />
+                <Image src={defaultProfilePicture} alt='ProfPic' className='w-full h-full object-cover border-[4px] border-black rounded-full' ref={smallImgRef} unoptimized />
             </div>
             <div className='absolute h-full w-full z-30' id='stats-grid'>
                 <div className='w-full place-items-center h-full grid grid-cols-2 grid-rows-2 gap-0'>

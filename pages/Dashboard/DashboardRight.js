@@ -82,19 +82,15 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
 
     useEffect(() => {
 
-        if (Data.Username != Username) {
-            setTimeout(() => {
-                setPassedData({
-                    Username: Data.Username,
-                    Name: Data.Name,
-                    Bio: Data.Bio,
-                    ProfilePic: Data.ProfilePic,
-                    Followers: Data.Followers,
-                    Following: Data.Following,
-                    ImageData: Data.ImageData
-                })
-            }, 500)
-        }
+        setPassedData({
+            Username: Data.Username,
+            Name: Data.Name,
+            Bio: Data.Bio,
+            ProfilePic: Data.ProfilePic,
+            Followers: Data.Followers,
+            Following: Data.Following,
+            ImageData: Data.ImageData
+        })
     }, [Data, Username])
 
     useEffect(() => {
@@ -321,11 +317,11 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
             </div>
 
             {
-                <div
-                    className='z-30 h-[100vh]'
-                >
-                    <Posts UserData={UserData} PostsUser={postsUser} />
-                </div>
+                // <div
+                //     className='z-30 h-[100vh]'
+                // >
+                //     <Posts UserData={UserData} PostsUser={postsUser} />
+                // </div>
             }
 
             <div ref={overlayRef} className='absolute top-0 left-0 hidden h-full w-full border-4 border-slate-600 z-40 bg-[rgba(0,0,0,0.8)] transition-opacity duration-500' style={{ opacity: 0 }} >

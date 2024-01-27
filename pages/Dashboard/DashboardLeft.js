@@ -23,10 +23,30 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
     useEffect(() => {
         const user_profile_pic = document.getElementById("user_profile_pic")
 
+
+
+        async function ConvertToBase64(url) {
+            if (url == "Default") {
+                return "Default"
+            }
+            const response = await fetch(url)
+            const blob = await response.blob()
+            const base64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader
+                reader.onerror = reject
+                reader.onload = () => {
+                    resolve(reader.result)
+                }
+                reader.readAsDataURL(blob)
+            })
+            return base64
+        }
+
         async function setBase64() {
-            const base64Data = await FetchImage(ProfilePic, "profile-pictures")
-            if (base64Data != "Default") {
-                user_profile_pic.src = "data:image/jpeg;base64," + base64Data
+            const url = await FetchImage(ProfilePic, "profile-pictures")
+
+            if (url != "Default") {
+                user_profile_pic.src = await ConvertToBase64(url)
             }
         }
 
@@ -240,6 +260,27 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
         })
     }
 
+    const ConvertBlobToBase64 = (blob) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader
+            reader.onerror = reject
+            reader.onload = () => {
+                resolve(reader.result)
+            }
+            reader.readAsDataURL(blob)
+        })
+    }
+
+    const ConvertToBase64 = async (url) => {
+        if (url == "Default") {
+            return "Default"
+        }
+        const response = await fetch(url)
+        const blob = await response.blob()
+        const base64 = await ConvertBlobToBase64(blob)
+        return base64
+    }
+
     const search_user = (e) => {
         setFindIsLoading(true)
         const username = friendUsernameInpRef.current.value
@@ -252,8 +293,9 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
             body: JSON.stringify({
                 Username: username
             })
-        }).then(res => res.json()).then(data => {
+        }).then(res => res.json()).then(async (data) => {
             if (data.ok) {
+                data.data.ImageData = await ConvertToBase64(data.data.ImageData)
                 const searchResults = document.getElementById("searchresults")
                 searchResults.innerHTML = ""
                 const search_result_container = document.createElement("div")
@@ -262,7 +304,7 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                 div.className = "flex flex-row items-center justify-start gap-8 w-[90%]"
                 const img = document.createElement("img")
                 if (data.data.ImageData != "Default") {
-                    img.src = 'data:image/png;base64,' + data.data.ImageData
+                    img.src = data.data.ImageData
                 } else {
                     img.src = "../../Assets/defaultProfilePicture.png"
                 }
@@ -447,6 +489,23 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
     }
 
     useEffect(() => {
+        async function ConvertToBase64(url) {
+            if (url == "Default") {
+                return "Default"
+            }
+            const response = await fetch(url)
+            const blob = await response.blob()
+            const base64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader
+                reader.onerror = reject
+                reader.onload = () => {
+                    resolve(reader.result)
+                }
+                reader.readAsDataURL(blob)
+            })
+            return base64
+        }
+
         const followersProfilePicture = document.getElementsByClassName("followersProfilePicture")
         const followingProfilePicture = document.getElementsByClassName("followingProfilePicture")
 
@@ -494,6 +553,7 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                         Username: username
                     })
                 })
+
                 const result = await ProfilePic.json()
                 BaseData[username] = {
                     "IMG": "",
@@ -505,17 +565,21 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                 friendName[i].addEventListener('click', (e) => {
                     setAction("PROFILE")
                     setData(fullData[username])
+
                 })
+
+                friendName[i].innerText = result.data.Name
 
                 if (result.ok && result.data.ImageData != "Default") {
 
-                    allImageTags[i].src = "data:image/png;base64," + result.data.ImageData
+                    result.data.ImageData = await ConvertToBase64(result.data.ImageData)
 
-                    BaseData[username]["IMG"] = "data:image/png;base64," + result.data.ImageData
+                    allImageTags[i].src = result.data.ImageData
+
+                    BaseData[username]["IMG"] = result.data.ImageData
 
                 }
 
-                friendName[i].innerText = result.data.Name
                 BaseData[username]["NAME"] = result.data.Name
 
 
@@ -576,7 +640,7 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                                                     <h2 className=' text-sm text-blue-800 font-bold'>@{username}</h2>
                                                 </div>
                                                 <div className='h-full w-fit flex justify-center items-center'>
-                                                    <button className='border-2 rounded-lg px-2 py-2 bg-red-800 text-[white] border-red-900 hover:bg-red-900 transition-colors duration-600' onClick={(e) => Remove(username, e)}>
+                                                    <button className='border-2 rounded-lg px-2 py-2 bg-red-800 text-[#ffffff] border-red-900 hover:bg-red-900 transition-colors duration-600' onClick={(e) => Remove(username, e)}>
                                                         <i className="fa-solid fa-trash text-[16px]"></i>
                                                     </button>
                                                 </div>

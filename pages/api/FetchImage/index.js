@@ -11,20 +11,14 @@ export default async function handler(req, res) {
         const DecryptedData = JSON.parse(DecryptData(AllData))[0]
 
         const { Filename, Path } = DecryptedData
-        const { data, error } = supabase.storage.from(Path).getPublicUrl(Filename)
-
+        const { data, error } = await supabase.storage.from(Path).createSignedUrl(Filename, 600)
 
         if (error) {
-            return res.status(401).json({ message: error, ok: false })
-        }
-        let base64Data = ""
-        if (data.publicUrl) {
-            base64Data = await getImageBase64(data.publicUrl)
-        } else {
-            base64Data = "Default"
+            return res.status(401).json({ message: error, ok: false, data: "Default" })
         }
 
-        return res.status(200).json({ message: "Image found", ok: true, data: base64Data })
+        return res.status(200).json({ message: "Image found", ok: true, data: data.signedUrl })
+
     } catch (e) {
         return res.status(500).json({ message: e, ok: false })
     }

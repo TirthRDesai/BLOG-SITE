@@ -190,14 +190,15 @@ function Posts({ UserData, PostsUser }) {
         key,
         postsFetcher,
         {
-            refreshInterval: 1500 * 1000,
+            refreshInterval: 150000 * 1000,
             refreshWhenHidden: false,
             refreshWhenOffline: false,
-            revalidateOnFocus: true,
-            revalidateOnMount: true,
-            revalidateOnReconnect: true,
+            revalidateOnFocus: false,
+            revalidateOnMount: false,
+            revalidateOnReconnect: false,
             shouldRetryOnError: true,
-            errorRetryInterval: 500
+            errorRetryInterval: 5000,
+            errorRetryCount: 2,
         }
     )
 
@@ -243,11 +244,11 @@ function Posts({ UserData, PostsUser }) {
         <div className={styles.PostsMain + ' h-full w-full overflow-scroll overflow-x-hidden z-20 flex flex-col gap-6 pt-6 min-h-0'}>
             {
                 showFallback ? <FallbackComp /> :
-                    SWRdata.map((post) => {
+                    SWRdata.length > 0 ? SWRdata.map((post) => {
                         return (
                             <PostLayout key={post.id} PostData={post} UserData={UserData} />
                         )
-                    })
+                    }) : ""
             }
         </div>
     )
