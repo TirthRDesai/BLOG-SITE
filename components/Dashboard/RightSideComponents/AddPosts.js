@@ -14,17 +14,19 @@ import axios from 'axios';
 function AddPosts({ UserData, setAddPost, setPostsUser }) {
     useEffect(() => {
         UserData.ProfilePic = document.getElementById("user_profile_pic").src
-        console.log(UserData)
+        // console.log(UserData)
     }, [UserData])
+
+    const [isSharing, setIsSharing] = useState(false)
 
     const [TextPart, setTextPart] = useState("")
     const [Image1, setImage1] = useState(null)
     const [Image2, setImage2] = useState(null)
     const [Image3, setImage3] = useState(null)
 
-    const [Image1Base64, setImage1Base64] = useState(null)
-    const [Image2Base64, setImage2Base64] = useState(null)
-    const [Image3Base64, setImage3Base64] = useState(null)
+    // const [Image1Base64, setImage1Base64] = useState(null)
+    // const [Image2Base64, setImage2Base64] = useState(null)
+    // const [Image3Base64, setImage3Base64] = useState(null)
 
 
     const [PostData, setPostData] = useState({
@@ -36,71 +38,71 @@ function AddPosts({ UserData, setAddPost, setPostsUser }) {
         Image3: ""
     })
 
-    useEffect(() => {
-        if (Image1) {
-            async function makeBase64() {
-                const base64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(Image1);
-                    reader.onloadend = () => {
-                        let base64data = reader.result;
-                        resolve(base64data);
-                    }
-                    reader.onerror = (error) => {
-                        reject(error);
-                    }
-                })
-                setImage1Base64(base64)
-            }
-            makeBase64()
-        } else {
-            setImage1Base64(null)
-        }
-    }, [Image1])
+    // useEffect(() => {
+    //     if (Image1) {
+    //         async function makeBase64() {
+    //             const base64 = await new Promise((resolve, reject) => {
+    //                 const reader = new FileReader();
+    //                 reader.readAsDataURL(Image1);
+    //                 reader.onloadend = () => {
+    //                     let base64data = reader.result;
+    //                     resolve(base64data);
+    //                 }
+    //                 reader.onerror = (error) => {
+    //                     reject(error);
+    //                 }
+    //             })
+    //             setImage1Base64(base64)
+    //         }
+    //         makeBase64()
+    //     } else {
+    //         setImage1Base64(null)
+    //     }
+    // }, [Image1])
 
-    useEffect(() => {
-        if (Image2) {
-            async function makeBase64() {
-                const base64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(Image2);
-                    reader.onloadend = () => {
-                        let base64data = reader.result;
-                        resolve(base64data);
-                    }
-                    reader.onerror = (error) => {
-                        reject(error);
-                    }
-                })
-                setImage2Base64(base64)
-            }
-            makeBase64()
-        } else {
-            setImage2Base64(null)
-        }
-    }, [Image2])
+    // useEffect(() => {
+    //     if (Image2) {
+    //         async function makeBase64() {
+    //             const base64 = await new Promise((resolve, reject) => {
+    //                 const reader = new FileReader();
+    //                 reader.readAsDataURL(Image2);
+    //                 reader.onloadend = () => {
+    //                     let base64data = reader.result;
+    //                     resolve(base64data);
+    //                 }
+    //                 reader.onerror = (error) => {
+    //                     reject(error);
+    //                 }
+    //             })
+    //             setImage2Base64(base64)
+    //         }
+    //         makeBase64()
+    //     } else {
+    //         setImage2Base64(null)
+    //     }
+    // }, [Image2])
 
-    useEffect(() => {
-        if (Image3) {
-            async function makeBase64() {
-                const base64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(Image3);
-                    reader.onloadend = () => {
-                        let base64data = reader.result;
-                        resolve(base64data);
-                    }
-                    reader.onerror = (error) => {
-                        reject(error);
-                    }
-                })
-                setImage3Base64(base64)
-            }
-            makeBase64()
-        } else {
-            setImage3Base64(null)
-        }
-    }, [Image3])
+    // useEffect(() => {
+    //     if (Image3) {
+    //         async function makeBase64() {
+    //             const base64 = await new Promise((resolve, reject) => {
+    //                 const reader = new FileReader();
+    //                 reader.readAsDataURL(Image3);
+    //                 reader.onloadend = () => {
+    //                     let base64data = reader.result;
+    //                     resolve(base64data);
+    //                 }
+    //                 reader.onerror = (error) => {
+    //                     reject(error);
+    //                 }
+    //             })
+    //             setImage3Base64(base64)
+    //         }
+    //         makeBase64()
+    //     } else {
+    //         setImage3Base64(null)
+    //     }
+    // }, [Image3])
 
 
     const [ViewPost, setViewPost] = useState(false)
@@ -144,12 +146,14 @@ function AddPosts({ UserData, setAddPost, setPostsUser }) {
 
     const UploadPost = async (e) => {
         e.preventDefault()
+        setIsSharing(true)
         if (TextPart == "") {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
                 text: 'You must enter something to post',
             })
+            setIsSharing(false)
             return
         }
         let ImagePart = []
@@ -174,21 +178,22 @@ function AddPosts({ UserData, setAddPost, setPostsUser }) {
             Image3: Image3 ? URL.createObjectURL(Image3) : null
         })
 
-        const response = await fetch("/api/UploadPost", {
-            method: "POST",
-            body: JSON.stringify({
-                Username: UserData.Username,
-                TextPart: TextPart,
-                Image1: Image1Base64,
-                Image2: Image2Base64,
-                Image3: Image3Base64
-            }),
+        let fileFormData = new FormData()
+        fileFormData.append('Username', UserData.Username)
+        fileFormData.append('TextPart', TextPart)
+        // fileFormData.append('ImagePart', ImagePart)
+        fileFormData.append('Image1', Image1)
+        fileFormData.append('Image2', Image2)
+        fileFormData.append('Image3', Image3)
+
+        const response = await axios.post("/api/UploadPost", fileFormData, {
             headers: {
-                "Content-Type": "application/json"
+                'Content-Type': 'multipart/form-data'
             }
         })
+        const data = await response.data
 
-        const data = await response.json()
+        // const data = await response.json()
 
         if (data.ok) {
             Swal.fire({
@@ -208,6 +213,8 @@ function AddPosts({ UserData, setAddPost, setPostsUser }) {
                 text: data.message,
             })
         }
+
+        setIsSharing(false)
 
 
     }
@@ -325,9 +332,30 @@ function AddPosts({ UserData, setAddPost, setPostsUser }) {
                                 }}>Edit Blog</Button>
                         }
 
-                        <Button className='bg-green-600 hover:bg-green-800 border-green-900 ml-4 border-2' onClick={(e) => {
-                            UploadPost(e)
-                        }}>Share</Button>
+                        {
+                            isSharing ?
+                                <Button className='realtive w-[150px] ml-4 bg-green-900'><div className={styles.loader}>
+                                    <div className={styles.circle}>
+                                        <div className={styles.dot}></div>
+                                        <div className={styles.outline}></div>
+                                    </div>
+                                    <div className={styles.circle}>
+                                        <div className={styles.dot}></div>
+                                        <div className={styles.outline}></div>
+                                    </div>
+                                    <div className={styles.circle}>
+                                        <div className={styles.dot}></div>
+                                        <div className={styles.outline}></div>
+                                    </div>
+                                    <div className={styles.circle}>
+                                        <div className={styles.dot}></div>
+                                        <div className={styles.outline}></div>
+                                    </div>
+                                </div></Button> :
+                                <Button className='bg-green-600 hover:bg-green-800 border-green-900 ml-4 border-2' onClick={(e) => {
+                                    UploadPost(e)
+                                }}>Share</Button>
+                        }
 
                     </div>
                 </div>
