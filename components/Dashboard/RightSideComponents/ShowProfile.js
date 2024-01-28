@@ -4,7 +4,7 @@ import defaultProfilePicture from '../../../public/Assets/defaultProfilePicture.
 import styles from '../../../styles/DashboardRight.module.css'
 import { Button } from '@/components/ui/button'
 import StaticFunctions from '@/pages/api/StaticFunctions'
-import { DecryptData } from '@/pages/EncryptingFunctions'
+import { DecryptData } from '@/components/EncryptingFunctions'
 import Swal from 'sweetalert2'
 
 function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef, setPostsUser, PostsUser }) {

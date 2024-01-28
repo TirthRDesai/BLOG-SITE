@@ -5,7 +5,7 @@ import Image from 'next/image'
 import defaultProfilePicture from '../../public/Assets/defaultProfilePicture.png'
 import Swal from 'sweetalert2'
 import { useMemo } from 'react'
-import StaticFunctions from '../api/StaticFunctions'
+import StaticFunctions from '../../pages/api/StaticFunctions'
 import { ClientSideCookies } from '../CustomCookie'
 import { useRouter } from 'next/router'
 

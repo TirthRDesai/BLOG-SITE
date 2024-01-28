@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import Login from './Login'
-import { EncryptData, DecryptData } from './EncryptingFunctions'
+import Login from '../components/Login'
+import { EncryptData, DecryptData } from '../components/EncryptingFunctions'
 import { useRouter } from 'next/router'
-import { ClientSideCookies, ServerSideCookies } from './CustomCookie'
+import { ClientSideCookies, ServerSideCookies } from '../components/CustomCookie'
 
 const CryptoJS = require('crypto-js')
 

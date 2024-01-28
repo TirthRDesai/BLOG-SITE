@@ -1,4 +1,4 @@
-import { EncryptData } from "@/pages/EncryptingFunctions"
+import { EncryptData } from "@/components/EncryptingFunctions"
 import { createClient } from "@supabase/supabase-js"
 
 export default async function handler(req, res) {

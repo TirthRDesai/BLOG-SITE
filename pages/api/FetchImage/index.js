@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
-import { DecryptData, EncryptData } from '@/pages/EncryptingFunctions'
+import { DecryptData, EncryptData } from '@/components/EncryptingFunctions'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 

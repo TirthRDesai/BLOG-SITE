@@ -1,6 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
 import styles from '../../styles/LoginPageLeft.module.css'
 import { Balsamiq_Sans } from 'next/font/google'
+import { FaAt } from "react-icons/fa6";
+import { FaRegEnvelope } from "react-icons/fa6";
+import { FaIdCard } from "react-icons/fa";
+import { RiLockPasswordLine } from "react-icons/ri";
+
+
+
+
 
 const balsamiqFont = Balsamiq_Sans({
     subsets: ['latin'],
@@ -224,54 +232,54 @@ function LoginPageLeft({ isLogin, setUsername, setPassword, usernameRef, loginUs
                     <div className="relative w-full rounded-xl" ref={usernameRef}>
                         <input type="email" className="peer py-3 pe-0 ps-9 block w-full bg-transparent border-2 border-[#f4f4f4] text-base outline-none rounded-xl disabled:opacity-50 disabled:pointer-events-none text-white" placeholder="Enter Username" onChange={(e) => setUsername(e.target.value)} autoComplete='off' />
                         <div className="absolute inset-y-0 start-0 flex items-center justify-end pointer-events-none ps-[10px] peer-disabled:opacity-50 pt-2 peer-disabled:pointer-events-none">
-                            <i className="fa-sharp fa-regular fa-at" style={
+                            <FaAt style={
                                 {
                                     width: "1.1rem",
                                     height: "1.1rem",
                                     color: "white",
                                     flexShrink: "0",
                                 }
-                            }></i>
+                            }></FaAt>
                         </div>
                     </div>
                     <div className="relative flex items-center justify-center w-full" style={{ marginTop: "0px", height: "0px" }} ref={emailRef}>
                         <input type="email" className="peer py-0 pe-0 ps-9 block w-full bg-transparent text-base outline-none disabled:opacity-50 disabled:pointer-events-none text-white" placeholder="Enter Email" onChange={(e) => setEmail(e.target.value)} style={{ height: "0px" }} autoComplete='off' />
                         <div className="absolute inset-y-0 start-0 hidden items-center justify-end pointer-events-none ps-[10px] peer-disabled:opacity-50 pt-1 opacity-0 border-[#f4f4f4] peer-disabled:pointer-events-none">
-                            <i className="fa-regular fa-envelope" style={
+                            <FaRegEnvelope style={
                                 {
                                     width: "1.1rem",
                                     height: "1.1rem",
                                     color: "white",
                                     flexShrink: "0",
                                 }
-                            }></i>
+                            } />
                         </div>
                     </div>
                     <div className="relative flex items-center justify-center w-full" style={{ marginTop: "0px", height: "0px" }} ref={nameRef}>
                         <input type="text" className="peer py-0 pe-0 ps-9 block w-full bg-transparent border-0 text-base outline-none disabled:opacity-50 disabled:pointer-events-none text-white" placeholder="Enter Name" onChange={(e) => setName(e.target.value)} autoComplete='off' style={{ height: "0px" }} />
                         <div className="absolute inset-y-0 start-0 hidden items-center justify-end pointer-events-none ps-[10px] peer-disabled:opacity-50 pt-1 opacity-0 peer-disabled:pointer-events-none">
-                            <i className="fa-regular fa-id-card" style={
+                            <FaIdCard className="fa-regular fa-id-card" style={
                                 {
                                     width: "1.1rem",
                                     height: "1.1rem",
                                     color: "white",
                                     flexShrink: "0",
                                 }
-                            }></i>
+                            } />
                         </div>
                     </div>
 
                     <div className="relative w-full mt-4" ref={passwordRef}>
                         <input type="password" className="peer py-3 pe-0 ps-9 block w-full bg-transparent border-2 border-[#f4f4f4] text-base outline-none rounded-xl disabled:opacity-50 disabled:pointer-events-none text-white" placeholder="Enter Password" onPaste={(e) => e.preventDefault()} onChange={(e) => setPassword(e.target.value)} autoComplete='off' />
                         <div className="absolute inset-y-0 start-0 flex items-center justify-end pointer-events-none ps-[10px] peer-disabled:opacity-50 pt-1 peer-disabled:pointer-events-none">
-                            <i className="fa-regular fa-key" style={
+                            <RiLockPasswordLine style={
                                 {
                                     width: "1.1rem",
                                     height: "1.1rem",
                                     color: "white",
                                     flexShrink: "0",
                                 }
-                            }></i>
+                            } />
                         </div>
                     </div>
                 </diV>

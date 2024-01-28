@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import { Formidable } from 'formidable'
-import { DecryptData } from "../EncryptingFunctions"
+import { DecryptData } from "../../components/EncryptingFunctions"
 import fs from 'fs'
 import path from 'path'
 

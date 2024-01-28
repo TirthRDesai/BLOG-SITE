@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import styles from '../../../styles/DashboardRight.module.css'
 import Image from 'next/image'
-import { EncryptData } from '@/pages/EncryptingFunctions'
+import { EncryptData } from '@/components/EncryptingFunctions'
 import Swal from 'sweetalert2'
 import { Button } from '@/components/ui/button'
 import ChangeDataSections from './ChangeDataSections'

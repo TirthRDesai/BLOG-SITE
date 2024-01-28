@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react'
 import StaticFunctions from '@/pages/api/StaticFunctions';
-import { DecryptData } from '@/pages/EncryptingFunctions';
+import { DecryptData } from '@/components/EncryptingFunctions';
 import PostLayout from './PostLayout';
 import styles from '../../../styles/Posts.module.css'
 import useSWR, { mutate } from 'swr';
@@ -171,7 +171,7 @@ function Posts({ UserData, PostsUser, setPostsUser }) {
                 showFallback ? <FallbackComp /> :
                     SWRdata.length > 0 ? SWRdata.map((post) => {
                         return (
-                            <PostLayout key={post.id} PostData={post.PostData} UserData={UserData} PostUserData={post.UserData} />
+                            <PostLayout key={post.PostData.id} PostData={post.PostData} UserData={UserData} PostUserData={post.UserData} />
                         )
                     }) : ""
             }

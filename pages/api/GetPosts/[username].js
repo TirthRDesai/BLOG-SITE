@@ -1,5 +1,5 @@
-import { ServerSideCookies } from "@/pages/CustomCookie"
-import { EncryptData } from "@/pages/EncryptingFunctions"
+import { ServerSideCookies } from "@/components/CustomCookie"
+import { EncryptData } from "@/components/EncryptingFunctions"
 import { createClient } from "@supabase/supabase-js"
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)

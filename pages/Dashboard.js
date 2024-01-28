@@ -1,11 +1,11 @@
-import React, { Suspense, useEffect, useState } from 'react'
-import styles from "../../styles/Dashboard.module.css"
-import DashboardLeft from './DashboardLeft'
-import DashboardRight from './DashboardRight'
-import { ServerSideCookies } from '../CustomCookie'
-import DashboardFallback from './DashboardFallback'
+import React, { useEffect, useState } from 'react'
+import styles from "../styles/Dashboard.module.css"
+import DashboardLeft from '../components/Dashboard/DashboardLeft'
+import DashboardRight from '../components/Dashboard/DashboardRight'
+import { ServerSideCookies } from '../components/CustomCookie'
+import DashboardFallback from '../components/Dashboard/DashboardFallback'
 import useSWR from 'swr'
-import { DecryptData } from '../EncryptingFunctions'
+import { DecryptData } from '../components/EncryptingFunctions'
 
 
 function Dashboard({ Username, NewUser }) {

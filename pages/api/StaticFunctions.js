@@ -1,4 +1,4 @@
-import { DecryptData, EncryptData } from "../EncryptingFunctions"
+import { DecryptData, EncryptData } from "../../components/EncryptingFunctions"
 
 export class StaticFunctions {
 
