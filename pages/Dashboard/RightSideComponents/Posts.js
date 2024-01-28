@@ -73,9 +73,11 @@ function Posts({ UserData, PostsUser }) {
     const postsFetcher = async () => {
         if (UserData != null && shouldFetch) {
             setShouldFetch(false)
-            let requested = key
+            let requested = Posts
             if (key == "AllPosts") {
                 requested = "*"
+            } else {
+                requested = key.slice(0, -5)
             }
 
             const response = await fetch('/api/GetPosts/' + requested, {
