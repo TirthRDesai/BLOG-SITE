@@ -5,6 +5,7 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.
 
 export default async function handler(req, res) {
 
+
     const { AllData } = req.body
 
     const DecryptedData = JSON.parse(DecryptData(AllData)).toSendData
@@ -20,6 +21,7 @@ export default async function handler(req, res) {
 
     const { data, error2 } = await supabase.from("UserData").select("Following").eq("Username", FriendUsername)
 
+
     if (error2) {
         console.log(error2)
         return res.status(401).json({ message: error2.message, ok: false })
@@ -28,6 +30,7 @@ export default async function handler(req, res) {
     const newFollowing = data[0].Following.filter((data) => {
         return data != Username
     })
+
 
     const { error3 } = await supabase.from("UserData").update({ Following: newFollowing }).eq("Username", FriendUsername)
 

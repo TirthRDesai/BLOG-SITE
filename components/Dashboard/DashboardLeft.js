@@ -421,7 +421,7 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
 
         const response = await staticFunctions.UnfollowUser(username, UserData.Following)
 
-        const result = DecryptData(response)
+        const result = JSON.parse(DecryptData(response))
 
         if (result.ok) {
             const Toast = Swal.mixin({
@@ -460,7 +460,7 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
         const staticFunctions = new StaticFunctions(UserData.Username)
 
         const response = await staticFunctions.RemoveUser(username, UserData.Followers)
-        const result = DecryptData(response)
+        const result = JSON.parse(DecryptData(response))
         if (result.ok) {
             const Toast = Swal.mixin({
                 toast: true,
