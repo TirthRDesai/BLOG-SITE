@@ -9,12 +9,11 @@ import { Button } from '@/components/ui/button';
 import { MdDeleteForever } from 'react-icons/md'
 import PostLayout from './PostLayout';
 import axios from 'axios';
-
+import { createClient } from '@supabase/supabase-js';
 
 function AddPosts({ UserData, setAddPost, setPostsUser }) {
     useEffect(() => {
         UserData.ProfilePic = document.getElementById("user_profile_pic").src
-        // console.log(UserData)
     }, [UserData])
 
     const [isSharing, setIsSharing] = useState(false)
@@ -24,11 +23,6 @@ function AddPosts({ UserData, setAddPost, setPostsUser }) {
     const [Image2, setImage2] = useState(null)
     const [Image3, setImage3] = useState(null)
 
-    // const [Image1Base64, setImage1Base64] = useState(null)
-    // const [Image2Base64, setImage2Base64] = useState(null)
-    // const [Image3Base64, setImage3Base64] = useState(null)
-
-
     const [PostData, setPostData] = useState({
         id: "9dpqkxdq5",
         Username: "",
@@ -37,73 +31,6 @@ function AddPosts({ UserData, setAddPost, setPostsUser }) {
         Image2: "",
         Image3: ""
     })
-
-    // useEffect(() => {
-    //     if (Image1) {
-    //         async function makeBase64() {
-    //             const base64 = await new Promise((resolve, reject) => {
-    //                 const reader = new FileReader();
-    //                 reader.readAsDataURL(Image1);
-    //                 reader.onloadend = () => {
-    //                     let base64data = reader.result;
-    //                     resolve(base64data);
-    //                 }
-    //                 reader.onerror = (error) => {
-    //                     reject(error);
-    //                 }
-    //             })
-    //             setImage1Base64(base64)
-    //         }
-    //         makeBase64()
-    //     } else {
-    //         setImage1Base64(null)
-    //     }
-    // }, [Image1])
-
-    // useEffect(() => {
-    //     if (Image2) {
-    //         async function makeBase64() {
-    //             const base64 = await new Promise((resolve, reject) => {
-    //                 const reader = new FileReader();
-    //                 reader.readAsDataURL(Image2);
-    //                 reader.onloadend = () => {
-    //                     let base64data = reader.result;
-    //                     resolve(base64data);
-    //                 }
-    //                 reader.onerror = (error) => {
-    //                     reject(error);
-    //                 }
-    //             })
-    //             setImage2Base64(base64)
-    //         }
-    //         makeBase64()
-    //     } else {
-    //         setImage2Base64(null)
-    //     }
-    // }, [Image2])
-
-    // useEffect(() => {
-    //     if (Image3) {
-    //         async function makeBase64() {
-    //             const base64 = await new Promise((resolve, reject) => {
-    //                 const reader = new FileReader();
-    //                 reader.readAsDataURL(Image3);
-    //                 reader.onloadend = () => {
-    //                     let base64data = reader.result;
-    //                     resolve(base64data);
-    //                 }
-    //                 reader.onerror = (error) => {
-    //                     reject(error);
-    //                 }
-    //             })
-    //             setImage3Base64(base64)
-    //         }
-    //         makeBase64()
-    //     } else {
-    //         setImage3Base64(null)
-    //     }
-    // }, [Image3])
-
 
     const [ViewPost, setViewPost] = useState(false)
 
@@ -128,22 +55,6 @@ function AddPosts({ UserData, setAddPost, setPostsUser }) {
         }
     }
 
-    const base64 = async (blobURL) => {
-        const response = await fetch(blobURL);
-        const blob = await response.blob();
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(blob);
-            reader.onloadend = () => {
-                let base64data = reader.result;
-                resolve(base64data);
-            }
-            reader.onerror = (error) => {
-                reject(error);
-            }
-        })
-    }
-
     const UploadPost = async (e) => {
         e.preventDefault()
         setIsSharing(true)
@@ -156,66 +67,114 @@ function AddPosts({ UserData, setAddPost, setPostsUser }) {
             setIsSharing(false)
             return
         }
-        let ImagePart = []
-        if (Image1) {
-            const base64Img1 = await base64(URL.createObjectURL(Image1))
-            ImagePart.push(base64Img1)
-        }
-        if (Image2) {
-            const base64Img2 = await base64(URL.createObjectURL(Image2))
-            ImagePart.push(base64Img2)
-        }
-        if (Image3) {
-            const base64Img3 = await base64(URL.createObjectURL(Image3))
-            ImagePart.push(base64Img3)
-        }
-        setPostData({
-            id: "9dpqkxdq5",
-            Username: UserData.Username,
-            TextPart: TextPart,
-            Image1: Image1 ? URL.createObjectURL(Image1) : null,
-            Image2: Image2 ? URL.createObjectURL(Image2) : null,
-            Image3: Image3 ? URL.createObjectURL(Image3) : null
-        })
 
-        let fileFormData = new FormData()
-        fileFormData.append('Username', UserData.Username)
-        fileFormData.append('TextPart', TextPart)
-        // fileFormData.append('ImagePart', ImagePart)
-        fileFormData.append('Image1', Image1)
-        fileFormData.append('Image2', Image2)
-        fileFormData.append('Image3', Image3)
+        try {
+            const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
-        const response = await axios.post("/api/UploadPost", fileFormData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
+
+            const response = await supabase.from("Posts").insert({
+                Username: UserData.Username,
+                TextPart: TextPart
+            }).select("*")
+
+            if (response.error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: response.error.message,
+                })
+
+                setIsSharing(false)
+                return
             }
-        })
-        const data = await response.data
 
-        // const data = await response.json()
+            setPostData({
+                id: "9dpqkxdq5",
+                Username: UserData.Username,
+                TextPart: TextPart,
+                Image1: Image1 ? URL.createObjectURL(Image1) : null,
+                Image2: Image2 ? URL.createObjectURL(Image2) : null,
+                Image3: Image3 ? URL.createObjectURL(Image3) : null
+            })
 
-        if (data.ok) {
+            const selectedData = response.data
+
+            if (Image1) {
+                const { data, error } = await supabase.storage.from("posts").upload(selectedData[0].Image1 + ".jpg", Image1, {
+                    cacheControl: '3600',
+                    contentType: 'image/jpeg',
+                    duplex: 'half',
+                    upsert: true
+                })
+
+                if (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: error,
+                    })
+                    setIsSharing(false)
+                    return
+                }
+
+            }
+
+            if (Image2) {
+                const { data, error } = await supabase.storage.from("posts").upload(selectedData[0].Image2 + ".jpg", Image2, {
+                    cacheControl: '3600',
+                    contentType: 'image/jpeg',
+                    duplex: 'half',
+                    upsert: true
+                })
+
+                if (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: error,
+                    })
+                    setIsSharing(false)
+                    return
+                }
+
+            }
+
+
+
+            if (Image3) {
+                const { data, error } = await supabase.storage.from("posts").upload(selectedData[0].Image3 + ".jpg", Image3, {
+                    cacheControl: '3600',
+                    contentType: 'image/jpeg',
+                    duplex: 'half',
+                    upsert: true
+                })
+
+                if (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: error,
+                    })
+                    setIsSharing(false)
+                    return
+                }
+
+            }
             Swal.fire({
                 icon: 'success',
                 title: 'Success',
-                text: data.message,
+                text: "Post Uploaded Successfully",
             })
             setAddPost(false)
             setTextPart("")
             setImage1(null)
             setImage2(null)
             setImage3(null)
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: data.message,
-            })
+        } catch (err) {
+            console.log(err)
+        } finally {
+            setIsSharing(false)
         }
-
-        setIsSharing(false)
-
 
     }
 

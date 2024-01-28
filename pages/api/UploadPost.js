@@ -34,6 +34,8 @@ export default async function handler(req, res) {
         Image3 = Image3[0]
 
 
+
+
         const response = await supabase.from("Posts").insert({
             Username: Username,
             TextPart: TextPart,
