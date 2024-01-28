@@ -7,7 +7,7 @@ import StaticFunctions from '@/pages/api/StaticFunctions'
 import { DecryptData } from '@/pages/EncryptingFunctions'
 import Swal from 'sweetalert2'
 
-function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef }) {
+function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef, setPostsUser, PostsUser }) {
     const bgImgRef = useRef(null)
     const smallImgRef = useRef(null)
 
@@ -214,7 +214,9 @@ function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef }) {
                                 </Button>
                         }
 
-                        <Button className='bg-blue-500 w-[80%] text-[16px] hover:bg-blue-700'>View Posts</Button>
+                        <Button className='bg-blue-500 w-[80%] text-[16px] hover:bg-blue-700' onClick={() => {
+                            setPostsUser(PassedData.Username)
+                        }}>View Posts</Button>
 
                     </div>
 

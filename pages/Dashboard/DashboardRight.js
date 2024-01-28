@@ -250,14 +250,12 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
     }
 
     const resetAll = (barItems, items) => {
-
         barItems.classList.remove("flex")
         barItems.classList.add("hidden")
 
         for (let i = 0; i < items.length; i++) {
             items[i].classList.add("invisible")
         }
-
     }
 
 
@@ -292,6 +290,23 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
         }
     }
 
+    useEffect(() => {
+        if (postsUser) {
+            const ShowProfilePanel = ShowProfilePanelRef.current
+            if (ShowProfilePanel.style.transform === "scale(1)") {
+                ShowProfilePanel.style.transform = "scale(0)"
+                const overlay = overlayRef.current
+
+                overlay.style.opacity = "0"
+                overlay.style.display = "none"
+                setTimeout(() => {
+
+                    ShowProfilePanel.style.visibility = "invisible"
+                }, 500);
+            }
+        }
+    }, [postsUser])
+
     return (
 
         <div className={styles.DashboardRight}>
@@ -320,7 +335,7 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
                 <div
                     className='z-30 h-[100vh]'
                 >
-                    <Posts UserData={UserData} PostsUser={postsUser} />
+                    <Posts UserData={UserData} PostsUser={postsUser} setPostsUser={setPostsUser} />
                 </div>
             }
 
@@ -336,7 +351,7 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
             <div ref={ShowProfilePanelRef} className='w-auto h-auto flex justify-center items-center absolute invisible inset-0 z-50 transition-transform duration-500' style={{
                 transform: "scale(0)"
             }} onClick={(e) => CloseAllPanels(e)}>
-                <ShowProfile Data={PassedData} BoxRef={BoxRef} setFetchOnCall={setFetchOnCall} UserData={MainData} PostsUser={postsUser} />
+                <ShowProfile Data={PassedData} BoxRef={BoxRef} setFetchOnCall={setFetchOnCall} UserData={MainData} PostsUser={postsUser} setPostsUser={setPostsUser} />
             </div>
 
         </div>

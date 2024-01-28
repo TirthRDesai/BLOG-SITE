@@ -4,6 +4,7 @@ import { DecryptData } from '@/pages/EncryptingFunctions';
 import PostLayout from './PostLayout';
 import styles from '../../../styles/Posts.module.css'
 import useSWR, { mutate } from 'swr';
+import { Button } from '@/components/ui/button';
 
 const FallbackComp = () => {
     return (
@@ -44,7 +45,7 @@ const ErrorComp = ({ error }) => {
     )
 }
 
-function Posts({ UserData, PostsUser }) {
+function Posts({ UserData, PostsUser, setPostsUser }) {
 
     const [refreshInterval, setRefreshInterval] = useState(2000)
     const [shouldFetch, setShouldFetch] = useState(true)
@@ -171,9 +172,14 @@ function Posts({ UserData, PostsUser }) {
                     SWRdata.length > 0 ? SWRdata.map((post) => {
                         return (
                             <PostLayout key={post.id} PostData={post.PostData} UserData={UserData} PostUserData={post.UserData} />
-
                         )
                     }) : ""
+            }
+            {
+                PostsUser != "*" ?
+                    <Button className='absolute bottom-4 right-4' onClick={() => {
+                        setPostsUser("*")
+                    }}>All Posts</Button> : ""
             }
         </div>
     )
