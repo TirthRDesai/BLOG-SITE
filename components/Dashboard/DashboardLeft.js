@@ -8,6 +8,9 @@ import { useMemo } from 'react'
 import StaticFunctions from '../../pages/api/StaticFunctions'
 import { ClientSideCookies } from '../CustomCookie'
 import { useRouter } from 'next/router'
+import { HiOutlineUserRemove } from "react-icons/hi";
+import { RiUserUnfollowLine } from 'react-icons/ri'
+
 
 function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
 
@@ -641,7 +644,7 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                                                 </div>
                                                 <div className='h-full w-fit flex justify-center items-center'>
                                                     <button className='border-2 rounded-lg px-2 py-2 bg-red-800 text-[#ffffff] border-red-900 hover:bg-red-900 transition-colors duration-600' onClick={(e) => Remove(username, e)}>
-                                                        <i className="fa-solid fa-trash text-[16px]"></i>
+                                                        <HiOutlineUserRemove />
                                                     </button>
                                                 </div>
                                             </div>
@@ -669,7 +672,7 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                                                 </div>
                                                 <div className='h-full w-fit flex justify-center items-center'>
                                                     <button className='border-2 rounded-lg px-2 py-2 bg-red-800 text-[white] border-red-900 hover:bg-red-900 transition-colors duration-600' onClick={(e) => Unfollow(username, e)}>
-                                                        <i className="fa-solid fa-trash text-[16px]"></i>
+                                                        <RiUserUnfollowLine />
                                                     </button>
                                                 </div>
                                             </div>
