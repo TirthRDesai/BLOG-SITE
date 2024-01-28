@@ -1,7 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
 
-var base64Img = require('base64-img');
-
 export default async function handler(req, res) {
     try {
         const { Username } = req.body

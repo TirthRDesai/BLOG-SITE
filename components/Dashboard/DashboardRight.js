@@ -5,6 +5,7 @@ import ShowProfile from './RightSideComponents/ShowProfile'
 import Posts from './RightSideComponents/Posts'
 import { Button } from '@/components/ui/button'
 import { ClientSideCookies } from '../CustomCookie'
+import AddPosts from './RightSideComponents/AddPosts'
 
 function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, setData }) {
 
@@ -13,6 +14,9 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
     const ShowProfilePanelRef = useRef(null)
     const overlayRef = useRef(null)
     const BoxRef = useRef(null)
+
+    const [addPost, setAddPost] = useState(false)
+
     const [MainData, setMainData] = useState({
         id: "",
         created_at: "",
@@ -314,14 +318,14 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
             <div className=' absolute flex flex-col justify-center items-end top-4 right-4 h-fit w-fit' >
                 <div className='relative h-fit w-fit bg-black py-3 rounded-xl cursor-pointer px-2' onClick={() => barsClicked()}>
                     <input className={styles.checkIcon + " absolute invisible z-20 w-full h-full"} name="check-icon" type="checkbox" />
-                    <label className={styles.iconMenu + " w-full h-full z-10"} for="check-icon" >
+                    <label className={styles.iconMenu + " w-full h-full z-10"} htmlFor="check-icon" >
                         <div className={styles.bar}></div>
                         <div className={styles.bar}></div>
                         <div className={styles.bar}></div>
                     </label>
                 </div>
                 <div className=' flex-col gap-2 mt-2 hidden' id='barItems'>
-                    <Button className='w-full invisible opacity-30'>Add Post</Button>
+                    <Button className='w-full invisible opacity-30' onClick={() => { setAddPost(true) }}>Add Post</Button>
                     <Button className='w-full invisible opacity-30'
                         onClick={() => {
                             setPostsUser(Username)
@@ -332,11 +336,14 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
             </div>
 
             {
-                <div
+                !addPost ? <div
                     className='z-30 h-[100vh]'
                 >
                     <Posts UserData={UserData} PostsUser={postsUser} setPostsUser={setPostsUser} />
-                </div>
+                </div> :
+                    <div className='z-30 h-[100vh]'>
+                        <AddPosts UserData={UserData} setPostsUser={setPostsUser} setAddPost={setAddPost} />
+                    </div>
             }
 
             <div ref={overlayRef} className='absolute top-0 left-0 hidden h-full w-full border-4 border-slate-600 z-40 bg-[rgba(0,0,0,0.8)] transition-opacity duration-500' style={{ opacity: 0 }} >

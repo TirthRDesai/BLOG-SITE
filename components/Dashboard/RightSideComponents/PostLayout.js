@@ -59,7 +59,7 @@ function PostLayout({ PostData, UserData, PostUserData }) {
 
     return (
         <div className="flex flex-col h-fit w-full justify-center items-center">
-            <div className="PostBox border-2 border-slate-600 max-w-[90%] w-[90%] min-w-[60%] flex flex-col justify-start py-4 items-start px-6 rounded-lg h-[350px] bg-[#F8F8FF]">
+            <div className="PostBox border-2 border-slate-600 max-w-[90%] w-[90%] min-w-[60%] flex flex-col justify-start py-4 items-start px-6 rounded-lg max-h-[350px] bg-[#F8F8FF]">
                 <div className="HeaderBar flex flex-row justify-start items-center w-full">
                     <div className="ProfilePic flex flex-row justify-center items-center border-2 border-black rounded-full">
 

@@ -1,8 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import { Formidable } from 'formidable'
 import { DecryptData } from "../../components/EncryptingFunctions"
-import fs from 'fs'
-import path from 'path'
 
 export default async function handler(req, res) {
     if (req.method === "POST") {
@@ -49,21 +47,6 @@ export default async function handler(req, res) {
     }
 }
 
-async function convertBase64toFileFormat(byteString) {
-    const byteCharacters = atob(byteString)
-
-    const byteNumbers = new Array(byteCharacters.length)
-
-    for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i)
-    }
-
-    const byteArray = new Uint8Array(byteNumbers)
-
-    const file = new File([byteArray], "image.jpg", { type: "image/jpeg" })
-
-    return file
-}
 
 export const config = {
     api: {
