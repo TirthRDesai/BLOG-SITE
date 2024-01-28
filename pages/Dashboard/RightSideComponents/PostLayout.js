@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import Slider from 'react-slick'
 import styles from '../../../styles/PostLayout.module.css'
 
-function PostLayout({ PostData }) {
+function PostLayout({ PostData, UserData, PostUserData }) {
 
     const [Data, setData] = useState({
         id: "",
@@ -13,25 +13,38 @@ function PostLayout({ PostData }) {
         TextPart: "",
         ImagePart: [],
         IsFollowed: "",
-        ProfilePicSrc: "",
+        ProfilePic: "",
         Name: "",
         IsFollowed: ""
     })
 
 
     useEffect(() => {
-        setData({
-            id: PostData.id,
-            created_at: PostData.created_at,
-            Username: PostData.Username,
-            TextPart: PostData.TextPart,
-            ImagePart: PostData.ImagePart,
-            IsFollowed: PostData.IsFollowed,
-            ProfilePicSrc: PostData.ProfilePicSrc,
-            Name: PostData.Name,
-            IsFollowed: PostData.IsFollowed
-        })
-    }, [PostData])
+
+        if (PostData) {
+            let ImagePart = []
+            if (PostData.Image1) {
+                ImagePart.push(PostData.Image1)
+            }
+            if (PostData.Image2) {
+                ImagePart.push(PostData.Image2)
+            }
+            if (PostData.Image3) {
+                ImagePart.push(PostData.Image3)
+            }
+            setData({
+                id: PostData.id,
+                created_at: PostData.created_at,
+                Username: PostData.Username,
+                TextPart: PostData.TextPart,
+                ImagePart: ImagePart,
+                IsFollowed: PostData.IsFollowed,
+                ProfilePic: PostUserData.ProfilePic != "Default" ? PostUserData.ProfilePic : "../../Assets/defaultProfilePicture.png",
+                Name: PostUserData.Name,
+                IsFollowed: PostUserData.isFollowed
+            })
+        }
+    }, [PostData, PostUserData])
 
     const settings = {
         infinite: true,
@@ -50,7 +63,7 @@ function PostLayout({ PostData }) {
                 <div className="HeaderBar flex flex-row justify-start items-center w-full">
                     <div className="ProfilePic flex flex-row justify-center items-center border-2 border-black rounded-full">
 
-                        <Image class="block h-[48px] aspect-square w-[48px] rounded-full" alt='ProfilePicture' src={Data.ProfilePicSrc} width={400} height={400} unoptimized />
+                        <Image class="block h-[48px] aspect-square w-[48px] rounded-full" alt='ProfilePicture' src={Data.ProfilePic} width={400} height={400} unoptimized />
 
 
                     </div>

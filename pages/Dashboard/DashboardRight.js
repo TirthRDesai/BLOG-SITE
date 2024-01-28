@@ -317,11 +317,11 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
             </div>
 
             {
-                // <div
-                //     className='z-30 h-[100vh]'
-                // >
-                //     <Posts UserData={UserData} PostsUser={postsUser} />
-                // </div>
+                <div
+                    className='z-30 h-[100vh]'
+                >
+                    <Posts UserData={UserData} PostsUser={postsUser} />
+                </div>
             }
 
             <div ref={overlayRef} className='absolute top-0 left-0 hidden h-full w-full border-4 border-slate-600 z-40 bg-[rgba(0,0,0,0.8)] transition-opacity duration-500' style={{ opacity: 0 }} >

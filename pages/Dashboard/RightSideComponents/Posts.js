@@ -4,7 +4,6 @@ import { DecryptData } from '@/pages/EncryptingFunctions';
 import PostLayout from './PostLayout';
 import styles from '../../../styles/Posts.module.css'
 import useSWR, { mutate } from 'swr';
-import Swal from 'sweetalert2';
 
 const FallbackComp = () => {
     return (
@@ -47,6 +46,9 @@ const ErrorComp = ({ error }) => {
 
 function Posts({ UserData, PostsUser }) {
 
+    const [refreshInterval, setRefreshInterval] = useState(2000)
+    const [shouldFetch, setShouldFetch] = useState(true)
+
     const [SWRdata, setSWRdata] = useState([])
 
     const [SWRerror, setSWRerror] = useState("")
@@ -68,137 +70,51 @@ function Posts({ UserData, PostsUser }) {
         }
     }, [PostsUser, key])
 
-    const getUserData = async (Username) => {
-        const staticFunctions = new StaticFunctions(Username)
-        const response = await staticFunctions.GetData()
-        const data = await JSON.parse(DecryptData(response))
-        if (data.ok) {
-            const result = await JSON.parse(DecryptData(data.data))
-            return result
-        } else {
-            return {}
-        }
-    }
-
     const postsFetcher = async () => {
-        if (UserData != null) {
-            const staticFunctions = new StaticFunctions(UserData.Username)
-            const response = await staticFunctions.GetPosts(PostsUser)
-            const data = await JSON.parse(DecryptData(response))
-
-
-            const FetchImage = async (Filename, Path) => {
-
-                const ImageData = await fetch("/api/FetchImage/" + Filename + "/" + Path, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
-                }).then(res => {
-                    if (res.ok) {
-                        return res.json()
-                    } else {
-                        return "Default"
-                    }
-
-                }).then(result => {
-                    if (result.ok) {
-                        return result.data
-                    } else {
-                        return "Default"
-                    }
-                })
-
-                return ImageData
+        if (UserData != null && shouldFetch) {
+            setShouldFetch(false)
+            let requested = key
+            if (key == "AllPosts") {
+                requested = "*"
             }
 
-            if (data.ok) {
-                const AllPosts = JSON.parse(DecryptData(data.data))
-
-                let FinalPostData = []
-
-                for (let index = 0; index < AllPosts.length; index++) {
-
-                    const Posts = AllPosts[index]
-
-                    let ImagePart = []
-
-                    if (Posts && Posts.id != "") {
-                        let imageData = ""
-
-                        if (Posts.Image1 != "NOIMAGE") {
-                            imageData = await FetchImage(Posts.Image1, "posts")
-                            ImagePart.push("data:image/jpeg;base64," + imageData)
-                            if (Posts.Image2 != "NOIMAGE") {
-                                imageData = await FetchImage(Posts.Image2, "posts")
-                                ImagePart.push("data:image/jpeg;base64," + imageData)
-                                if (Posts.Image3 != "NOIMAGE") {
-                                    imageData = await FetchImage(Posts.Image3, "posts")
-                                    ImagePart.push("data:image/jpeg;base64," + imageData)
-                                }
-                            }
-
-
-                            const PostUserData = await getUserData(Posts.Username)
-
-                            let ProfilePicSrc = "../../Assets/defaultProfilePicture.png"
-
-                            if (PostUserData != {}) {
-                                const imageData = await FetchImage(PostUserData.ProfilePic, "profile-pictures")
-
-
-                                if (imageData == "Default") {
-                                    ProfilePicSrc = "../../Assets/defaultProfilePicture.png"
-                                } else {
-                                    ProfilePicSrc =
-                                        "data:image/jpeg;base64," + imageData
-                                }
-                            }
-
-                            let toAppendData = {
-                                id: Posts.id,
-                                created_at: Posts.created_at,
-                                Username: Posts.Username,
-                                TextPart: Posts.TextPart,
-                                ImagePart: ImagePart,
-                                IsFollowed: UserData.Following.includes(Posts.Username),
-                                ProfilePicSrc: ProfilePicSrc,
-                                Name: PostUserData.Name,
-                                IsFollowed: PostUserData.Followers.includes(UserData.Username)
-                            }
-
-
-                            FinalPostData.push(toAppendData)
-                        }
-                    }
-
+            const response = await fetch('/api/GetPosts/' + requested, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
                 }
-                return FinalPostData
+            })
 
-            } else {
-                return (
-                    <h1>Could not fetch posts.</h1>
-                )
-            }
+            const data = await response.json()
+
+            const result = await JSON.parse(data.data)
+
+            setShouldFetch(true)
+            setRefreshInterval(600 * 1000)
+
+            return result
+
         } else {
-            throw new Error("UserData is Not Loaded")
+            return null
         }
     }
+
+
 
 
     const { data, error } = useSWR(
         key,
         postsFetcher,
         {
-            refreshInterval: 150000 * 1000,
+            refreshInterval: refreshInterval,
             refreshWhenHidden: false,
             refreshWhenOffline: false,
             revalidateOnFocus: false,
-            revalidateOnMount: false,
-            revalidateOnReconnect: false,
+            revalidateOnMount: true,
+            revalidateOnReconnect: true,
             shouldRetryOnError: true,
-            errorRetryInterval: 5000,
-            errorRetryCount: 2,
+            errorRetryInterval: 1000,
+            errorRetryCount: 5
         }
     )
 
@@ -206,15 +122,21 @@ function Posts({ UserData, PostsUser }) {
         if (data != null) {
             setShowFallback(false)
             setSWRdata(data)
+            setRefreshInterval(150000 * 60)
+            setShouldFetch(true)
         } else {
             setShowFallback(true)
             setSWRdata(null)
+            setRefreshInterval(500)
+
         }
     }, [data])
 
     useEffect(() => {
         if (error) {
             setSWRerror(error)
+            setShouldFetch(true)
+            setRefreshInterval(500)
         }
     }, [error])
 
@@ -246,7 +168,8 @@ function Posts({ UserData, PostsUser }) {
                 showFallback ? <FallbackComp /> :
                     SWRdata.length > 0 ? SWRdata.map((post) => {
                         return (
-                            <PostLayout key={post.id} PostData={post} UserData={UserData} />
+                            <PostLayout key={post.id} PostData={post.PostData} UserData={UserData} PostUserData={post.UserData} />
+
                         )
                     }) : ""
             }
