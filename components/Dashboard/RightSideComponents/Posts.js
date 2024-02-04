@@ -164,7 +164,7 @@ function Posts({ UserData, PostsUser, setPostsUser, setAction, setData, setFetch
 
 
     return (
-        <div className={styles.PostsMain + ' h-full w-full overflow-scroll overflow-x-hidden z-20 flex flex-col gap-6 pt-6 min-h-0'}>
+        <div className={styles.PostsMain + ' h-full w-full overflow-scroll overflow-x-hidden z-20 flex flex-col gap-6 py-6 min-h-0'}>
             {
                 showFallback ?
                     <FallbackComp /> :

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import Slider from 'react-slick'
@@ -6,6 +6,8 @@ import styles from '../../../styles/PostLayout.module.css'
 import StaticFunctions from '@/pages/api/StaticFunctions'
 import { DecryptData } from '@/components/EncryptingFunctions'
 import Swal from 'sweetalert2'
+import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 
 function PostLayout({ PostData, UserData, PostUserData, setAction, setData, setFetchOnCall }) {
 
@@ -20,6 +22,8 @@ function PostLayout({ PostData, UserData, PostUserData, setAction, setData, setF
         Name: "",
         IsFollowed: ""
     })
+
+    const postRef = useRef()
 
 
     useEffect(() => {
@@ -134,8 +138,35 @@ function PostLayout({ PostData, UserData, PostUserData, setAction, setData, setF
         setFetchOnCall(true)
     }
 
+    const DeleteImages = async () => {
+        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+        let isImagesDeleted = true
+
+        for (let i = 0; i < Data.ImagePart.length; i++) {
+            let image = Data.ImagePart[i].split("/")
+            image = image[image.length - 1]
+
+            const imageResponse = await supabase.storage.from("posts").remove(image)
+
+            if (imageResponse.error) {
+                isImagesDeleted = false
+                break
+            }
+        }
+
+
+
+        if (isImagesDeleted) {
+            return true
+        } else {
+            return false
+        }
+    }
+
     const DeletePost = async (e, postId) => {
         const button = e.target
+        let isPostDeleted = false
         button.style.cursor = "wait"
         button.onclick = null
         // button.style.pointerEvents = 'none';
@@ -144,6 +175,8 @@ function PostLayout({ PostData, UserData, PostUserData, setAction, setData, setF
         const response = await staticFunction.DeletePost(postId)
 
         const result = JSON.parse(DecryptData(response))
+
+
         const toast = Swal.mixin({
             toast: true,
             position: 'bottom-end',
@@ -151,12 +184,24 @@ function PostLayout({ PostData, UserData, PostUserData, setAction, setData, setF
             timerProgressBar: true,
             showConfirmButton: false,
         })
-        if (result.ok) {
+
+        const ImageResponse = await DeleteImages()
+        if (ImageResponse && result.ok) {
+            isPostDeleted = true
+        }
+
+        if (isPostDeleted) {
+
             toast.fire({
                 title: "Success",
                 icon: "success",
                 text: "Post Deleted Successfully",
             })
+
+            if (postRef.current) {
+                postRef.current.style.display = "none"
+            }
+
         } else {
             toast.fire({
                 title: "Error",
@@ -175,7 +220,7 @@ function PostLayout({ PostData, UserData, PostUserData, setAction, setData, setF
 
     return (
         <div className="flex flex-col h-fit w-full justify-center items-center">
-            <div className="PostBox border-2 border-slate-600 max-w-[90%] w-[90%] min-w-[60%] flex flex-col justify-start py-4 items-start px-6 rounded-lg max-h-[350px] bg-[#F8F8FF]">
+            <div className="PostBox border-2 border-slate-600 max-w-[90%] w-[90%] min-w-[60%] flex flex-col justify-start py-4 items-start px-6 rounded-lg max-h-[350px] bg-[#F8F8FF]" id={Data.id} ref={postRef}>
                 <div className="HeaderBar flex flex-row justify-start items-center w-full">
                     <div className="ProfilePic flex flex-row justify-center items-center border-2 border-black rounded-full">
 
