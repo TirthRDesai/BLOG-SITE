@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import StaticFunctions from '@/pages/api/StaticFunctions'
 import { DecryptData } from '@/components/EncryptingFunctions'
 import Swal from 'sweetalert2'
+import { createClient } from '@supabase/supabase-js'
 
 function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef, setPostsUser, PostsUser }) {
     const bgImgRef = useRef(null)
@@ -27,40 +28,79 @@ function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef, setPostsUser, Pos
         Bio: "",
         ProfilePic: "",
         Followers: [],
-        Following: [],
-        ImageData: ""
+        Following: []
     })
 
     useEffect(() => {
-        setPassedData({
-            Username: Data.Username,
-            Name: Data.Name,
-            Bio: Data.Bio,
-            ProfilePic: Data.ProfilePic,
-            Followers: Array.from(new Set(Data.Followers)),
-            Following: Array.from(new Set(Data.Following)),
-            ImageData: Data.ImageData
-        })
-        if (Data.Followers) {
-            if (Data.Followers.includes(Username)) {
-                setIsFollowed(true)
-            } else {
-                setIsFollowed(false)
+
+        async function fetchUserData(Username) {
+            const staticFunctions = new StaticFunctions(Username)
+            const response = await staticFunctions.GetData()
+            let res = JSON.parse(DecryptData(response))
+            let result = JSON.parse(DecryptData(res.data))
+
+            const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+            const { data, error } = await supabase.storage.from('profile-pictures').list()
+
+            if (error) {
+                console.log(error)
+            }
+
+
+            let temp = "../../Assets/defaultProfilePicture.png"
+
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].name == (result.ProfilePic + ".jpg")) {
+                    const publicUrl = supabase.storage.from('profile-pictures').getPublicUrl(data[i].name).data.publicUrl
+                    temp = publicUrl ? publicUrl : "Default"
+                    break
+                }
+            }
+
+            result.ProfilePic = temp
+
+            return result
+        }
+
+        if (Data) {
+            if (Data.Username) {
+                const username = Data.Username
+                fetchUserData(username).then((result) => {
+                    setPassedData({
+                        Username: result.Username,
+                        Name: result.Name,
+                        Bio: result.Bio,
+                        ProfilePic: result.ProfilePic,
+                        Followers: Array.from(new Set(result.Followers)),
+                        Following: Array.from(new Set(result.Following)),
+                    })
+                    if (result.Followers) {
+                        if (result.Followers.includes(Username)) {
+                            setIsFollowed(true)
+                        } else {
+                            setIsFollowed(false)
+                        }
+                    }
+                })
             }
         }
+
     }, [Data, Username])
 
     useEffect(() => {
-        const image = bgImgRef.current
-        const smallImage = smallImgRef.current
-        if (PassedData.ImageData == "Default") {
-            image.style.backgroundImage = `url('../../Assets/defaultProfilePicture.png')`
+        if (PassedData.ProfilePic) {
+            const image = bgImgRef.current
+            const smallImage = smallImgRef.current
+            if (PassedData.ProfilePic == "Default") {
+                image.style.backgroundImage = `url('../../Assets/defaultProfilePicture.png')`
 
-            smallImage.src = "../../Assets/defaultProfilePicture.png"
-        } else {
-            if (PassedData.ImageData) {
-                image.style.backgroundImage = `url('${PassedData.ImageData}')`
-                smallImage.src = PassedData.ImageData
+                smallImage.src = "../../Assets/defaultProfilePicture.png"
+            } else {
+                if (PassedData.ProfilePic) {
+                    image.style.backgroundImage = `url('${PassedData.ProfilePic}')`
+                    smallImage.src = PassedData.ProfilePic
+                }
             }
         }
     }, [bgImgRef, smallImgRef, PassedData])
@@ -132,7 +172,7 @@ function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef, setPostsUser, Pos
         setIsFollowing(true)
         const staticFunctions = new StaticFunctions(Username)
 
-        const response = await staticFunctions.FollowUser(PassedData.Username, PassedData.Followers, UserData.Following)
+        const response = await staticFunctions.FollowUser(PassedData.Username, UserData.Following)
 
         const result = JSON.parse(DecryptData(response))
 

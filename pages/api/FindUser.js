@@ -25,23 +25,32 @@ export default async function handler(req, res) {
             return res.status(401).json({ message: "User not found", ok: false })
         }
 
-        const response = await supabase.storage.from("profile-pictures").createSignedUrl(data[0].ProfilePic + ".jpg", 300)
+        const allImages = (await supabase.storage.from("profile-pictures").list()).data
 
-        const errorSignedURL = response.error
+        let temp = "Default"
 
-        if (errorSignedURL) {
-            if (errorSignedURL.message == "Object not found") {
-                data[0].ImageData = "Default"
-                return await res.status(200).json({ message: "User found", ok: true, data: data[0] })
-            }
-            else {
-                return res.status(401).json({ message: errorSignedURL.message, ok: false })
+        for (let i = 0; i < allImages.length; i++) {
+            if (allImages[i].name == (data[0].ProfilePic + ".jpg")) {
+                temp = allImages[i].name
+                break
             }
         }
 
-        const signedURL = response.data.signedUrl
+        if (temp != "Default") {
+            const response = supabase.storage.from("profile-pictures").getPublicUrl(temp)
 
-        data[0].ImageData = signedURL
+            const errorSignedURL = response.error
+
+            if (errorSignedURL) {
+                temp = "Default"
+                return await res.status(200).json({ message: "User found", ok: true, data: data[0] })
+            }
+
+            temp = response.data.publicUrl
+
+        }
+
+        data[0].ProfilePic = temp
 
         return await res.status(200).json({ message: "User found", ok: true, data: data[0] })
     }

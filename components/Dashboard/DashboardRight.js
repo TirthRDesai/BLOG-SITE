@@ -339,7 +339,7 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
                 !addPost ? <div
                     className='z-30 h-[100vh]'
                 >
-                    <Posts UserData={UserData} PostsUser={postsUser} setPostsUser={setPostsUser} />
+                    <Posts UserData={UserData} PostsUser={postsUser} setPostsUser={setPostsUser} setAction={setAction} setData={setData} setFetchOnCall={setFetchOnCall} />
                 </div> :
                     <div className='z-30 h-[100vh]'>
                         <AddPosts UserData={UserData} setPostsUser={setPostsUser} setAddPost={setAddPost} />

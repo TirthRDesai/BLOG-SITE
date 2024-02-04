@@ -52,15 +52,6 @@ function EditDetails({ Data, setFetchOnCall, BoxRef }) {
 
                 fileInput.onchange = function (e) {
                     const file = fileInput.files[0]
-                    // const reader = new FileReader()
-                    // reader.onload = function () {
-                    //     const dataURL = reader.result
-                    //     const imagedata = dataURL.split(",")
-                    //     const base64 = imagedata[1]
-                    //     resolve(base64)
-                    // }
-
-                    // reader.readAsDataURL(file)
                     resolve(file)
                 }
                 fileInput.click()

@@ -1,6 +1,4 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react'
-import StaticFunctions from '@/pages/api/StaticFunctions';
-import { DecryptData } from '@/components/EncryptingFunctions';
 import PostLayout from './PostLayout';
 import styles from '../../../styles/Posts.module.css'
 import useSWR, { mutate } from 'swr';
@@ -45,7 +43,7 @@ const ErrorComp = ({ error }) => {
     )
 }
 
-function Posts({ UserData, PostsUser, setPostsUser }) {
+function Posts({ UserData, PostsUser, setPostsUser, setAction, setData, setFetchOnCall }) {
 
     const [refreshInterval, setRefreshInterval] = useState(2000)
     const [shouldFetch, setShouldFetch] = useState(true)
@@ -168,10 +166,11 @@ function Posts({ UserData, PostsUser, setPostsUser }) {
     return (
         <div className={styles.PostsMain + ' h-full w-full overflow-scroll overflow-x-hidden z-20 flex flex-col gap-6 pt-6 min-h-0'}>
             {
-                showFallback ? <FallbackComp /> :
+                showFallback ?
+                    <FallbackComp /> :
                     SWRdata.length > 0 ? SWRdata.map((post) => {
                         return (
-                            <PostLayout key={post.PostData.id} PostData={post.PostData} UserData={UserData} PostUserData={post.UserData} />
+                            <PostLayout key={post.PostData.id} PostData={post.PostData} UserData={UserData} PostUserData={post.UserData} setAction={setAction} setData={setData} setFetchOnCall={setFetchOnCall} />
                         )
                     }) : ""
             }

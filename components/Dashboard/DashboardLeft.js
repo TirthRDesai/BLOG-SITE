@@ -298,7 +298,9 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
             })
         }).then(res => res.json()).then(async (data) => {
             if (data.ok) {
-                data.data.ImageData = await ConvertToBase64(data.data.ImageData)
+
+                console.log(data.data)
+
                 const searchResults = document.getElementById("searchresults")
                 searchResults.innerHTML = ""
                 const search_result_container = document.createElement("div")
@@ -306,8 +308,8 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                 const div = document.createElement("div")
                 div.className = "flex flex-row items-center justify-start gap-8 w-[90%]"
                 const img = document.createElement("img")
-                if (data.data.ImageData != "Default") {
-                    img.src = data.data.ImageData
+                if (data.data.ProfilePic != "Default") {
+                    img.src = data.data.ProfilePic
                 } else {
                     img.src = "../../Assets/defaultProfilePicture.png"
                 }
@@ -557,7 +559,10 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                     })
                 })
 
+                // console.log(await ProfilePic.json())
+
                 const result = await ProfilePic.json()
+                console.log(result)
                 BaseData[username] = {
                     "IMG": "",
                     "NAME": ""
@@ -573,13 +578,11 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
 
                 friendName[i].innerText = result.data.Name
 
-                if (result.ok && result.data.ImageData != "Default") {
+                if (result.ok && result.data.ProfilePic != "Default") {
 
-                    result.data.ImageData = await ConvertToBase64(result.data.ImageData)
+                    allImageTags[i].src = result.data.ProfilePic
 
-                    allImageTags[i].src = result.data.ImageData
-
-                    BaseData[username]["IMG"] = result.data.ImageData
+                    BaseData[username]["IMG"] = result.data.ProfilePic
 
                 }
 

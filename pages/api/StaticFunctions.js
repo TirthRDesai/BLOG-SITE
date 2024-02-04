@@ -35,10 +35,7 @@ export class StaticFunctions {
 
     // FRIENDUSERNAME : STRING, FOLLOWERS (FRIEND'S FOLLOWERS) : ARRAY ([]), FOLLOWING (USER'S FOLLOWINGS) : ARRAY ([])
 
-    async FollowUser(FriendUsername, Followers, Following) {
-
-        Followers.push(this.Username)
-        Followers = Array.from(new Set(Followers))
+    async FollowUser(FriendUsername, Following) {
         Following.push(FriendUsername)
         Following = Array.from(new Set(Following))
 
@@ -46,7 +43,6 @@ export class StaticFunctions {
             Username: this.Username,
             FriendUsername: FriendUsername,
             newFollowing: Following,
-            newFollowers: Followers
         }]
 
         const response = await fetch("/api/FollowUser", {
@@ -132,6 +128,18 @@ export class StaticFunctions {
         })
         const data = await response.json()
         return EncryptData(JSON.stringify(data))
+    }
+
+    async DeletePost(PostId) {
+        const response = await fetch("/api/DeletePost", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ Username: this.Username, PostId: PostId })
+        })
+        const res = await response.json()
+        return EncryptData(JSON.stringify(res))
     }
 }
 

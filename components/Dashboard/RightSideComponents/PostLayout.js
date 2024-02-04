@@ -3,10 +3,13 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import Slider from 'react-slick'
 import styles from '../../../styles/PostLayout.module.css'
+import StaticFunctions from '@/pages/api/StaticFunctions'
+import { DecryptData } from '@/components/EncryptingFunctions'
+import Swal from 'sweetalert2'
 
-function PostLayout({ PostData, UserData, PostUserData }) {
+function PostLayout({ PostData, UserData, PostUserData, setAction, setData, setFetchOnCall }) {
 
-    const [Data, setData] = useState({
+    const [Data, setMainData] = useState({
         id: "",
         created_at: "",
         Username: "",
@@ -20,7 +23,6 @@ function PostLayout({ PostData, UserData, PostUserData }) {
 
 
     useEffect(() => {
-
         if (PostData) {
             let ImagePart = []
             if (PostData.Image1) {
@@ -32,7 +34,7 @@ function PostLayout({ PostData, UserData, PostUserData }) {
             if (PostData.Image3) {
                 ImagePart.push(PostData.Image3)
             }
-            setData({
+            setMainData({
                 id: PostData.id,
                 created_at: PostData.created_at,
                 Username: PostData.Username,
@@ -41,10 +43,10 @@ function PostLayout({ PostData, UserData, PostUserData }) {
                 IsFollowed: PostData.IsFollowed,
                 ProfilePic: PostUserData.ProfilePic != "Default" ? PostUserData.ProfilePic : "../../Assets/defaultProfilePicture.png",
                 Name: PostUserData.Name,
-                IsFollowed: PostUserData.isFollowed
+                IsFollowed: UserData.Following.includes(PostUserData.Username)
             })
         }
-    }, [PostData, PostUserData])
+    }, [PostData, PostUserData, UserData])
 
     const settings = {
         infinite: true,
@@ -55,6 +57,120 @@ function PostLayout({ PostData, UserData, PostUserData }) {
         autoplaySpeed: 3000,
         pauseOnHover: true,
     };
+
+    const UnfollowUser = async (e, friendUsername) => {
+        const button = e.target
+        button.style.cursor = "wait"
+        button.onclick = null
+        // button.style.pointerEvents = 'none';
+
+        const staticFunction = new StaticFunctions(UserData.Username)
+        const response = await staticFunction.UnfollowUser(friendUsername, UserData.Following)
+
+        const result = JSON.parse(DecryptData(response))
+        const toast = Swal.mixin({
+            toast: true,
+            position: 'bottom-end',
+            timer: 3000,
+            showConfirmButton: false,
+            timerProgressBar: true
+        })
+        if (result.ok) {
+            toast.fire({
+                title: "Success",
+                icon: "success",
+                text: "Unfollowed Successfully"
+            })
+        } else {
+            toast.fire({
+                title: "Error",
+                icon: "error",
+                text: "Error Occurred"
+            })
+        }
+        button.onclick = (e, friendUsername) => {
+            UnfollowUser(e, friendUsername)
+        }
+        setFetchOnCall(true)
+        // button.style.pointerEvents = "auto"
+        button.style.cursor = "pointer"
+    }
+
+    const FollowUser = async (e, friendUsername) => {
+        const button = e.target
+        button.style.cursor = "wait"
+        button.onclick = null
+        // button.style.pointerEvents = 'none';
+
+        const staticFunction = new StaticFunctions(UserData.Username)
+        const response = await staticFunction.FollowUser(friendUsername, UserData.Following)
+
+        const result = JSON.parse(DecryptData(response))
+        const toast = Swal.mixin({
+            toast: true,
+            position: 'bottom-end',
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+        })
+        if (result.ok) {
+            toast.fire({
+                title: "Success",
+                icon: "success",
+                text: "Followed Successfully",
+            })
+        } else {
+            toast.fire({
+                title: "Error",
+                icon: "error",
+                text: "Error Occurred"
+            })
+        }
+        // button.style.pointerEvents = "auto"
+        button.onclick = (e, friendUsername) => {
+            FollowUser(e, friendUsername)
+        }
+        button.style.cursor = "pointer"
+        setFetchOnCall(true)
+    }
+
+    const DeletePost = async (e, postId) => {
+        const button = e.target
+        button.style.cursor = "wait"
+        button.onclick = null
+        // button.style.pointerEvents = 'none';
+
+        const staticFunction = new StaticFunctions(UserData.Username)
+        const response = await staticFunction.DeletePost(postId)
+
+        const result = JSON.parse(DecryptData(response))
+        const toast = Swal.mixin({
+            toast: true,
+            position: 'bottom-end',
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+        })
+        if (result.ok) {
+            toast.fire({
+                title: "Success",
+                icon: "success",
+                text: "Post Deleted Successfully",
+            })
+        } else {
+            toast.fire({
+                title: "Error",
+                icon: "error",
+                text: "Error Occurred"
+            })
+        }
+        // button.style.pointerEvents = "auto"
+        button.onclick = (e, postId) => {
+            DeletePost(e, postId)
+        }
+        button.style.cursor = "pointer"
+        setFetchOnCall(true)
+    }
 
 
     return (
@@ -72,33 +188,60 @@ function PostLayout({ PostData, UserData, PostUserData }) {
                             <div className="Name text-slate-600 font-bold text-base">
                                 {Data.Name}
                             </div>
-                            <div className="Username text-slate-600 font-bold text-sm">
+                            <div className="Username text-slate-600 font-bold text-sm hover:underline cursor-pointer" onClick={() => {
+                                if (Data.Username == UserData.Username) {
+                                    setAction("EDIT")
+                                    setData(UserData)
+                                } else {
+                                    setAction("PROFILE")
+                                    setData({
+                                        Username: Data.Username
+                                    })
+                                }
+                            }}>
                                 @{Data.Username}
                             </div>
                         </div>
+                        <div className="ml-2 border-collapse flex flex-col items-start justify-center">
+                            {
+                                UserData.Username != Data.Username && Data.IsFollowed ?
+                                    <Button className="bg-red-600 border-2 hover:bg-red-500 border-red-800 text-white font-semibold text-sm rounded-lg px-4 py-2" onClick={(e) => UnfollowUser(e, Data.Username)} style={{
+                                        cursor: "pointer"
+                                    }} >
+                                        Unfollow
+                                    </Button>
+                                    :
+                                    UserData.Username != Data.Username && !Data.IsFollowed ?
+                                        <Button className="bg-green-600 border-green-800 border-2 hover:bg-green-500 text-white font-semibold text-sm rounded-lg px-4 py-2" onClick={(e) => FollowUser(e, Data.Username)} style={{
+                                            cursor: "pointer"
+                                        }}>
+                                            Follow
+                                        </Button>
+                                        :
+                                        <Button className="bg-red-600 border-2 hover:bg-red-500 border-red-800  text-white font-semibold text-sm rounded-lg px-4 py-2" onClick={(e) => DeletePost(e, Data.id)}>
+                                            Delete
+                                        </Button>
 
-                        <div className="ml-2 flex flex-row justify-center items-center">
-
-                            <Button className="bg-green-600 hover:bg-green-800 border-green-900 border-2">
-                                {
-                                    Data.IsFollowed ? "Unfollow" : "Follow"
-                                }
-                            </Button>
+                            }
                         </div>
+
                     </div>
                 </div>
                 <div className=" w-full h-full min-w-[200px] text-slate-600 font-bold text-base mt-8 flex flex-row items-start justify-start pb-2">
 
 
-                    <Slider {...settings} className='aspect-[1] h-[80%] overflow-visible'>
-                        {
-                            Data.ImagePart.map((data, index) => {
-                                return (
-                                    <Image key={data} className={styles.slide} alt='PostImage' src={data} width={400} height={400} unoptimized />
-                                )
-                            })
-                        }
-                    </Slider>
+                    {
+                        Data.ImagePart.length > 0 ?
+                            <Slider {...settings} className='w-[60%] h-full overflow-hidden'>
+                                {
+                                    Data.ImagePart.map((data, index) => {
+                                        return (
+                                            <Image key={data} className={styles.slide} alt='PostImage' src={data} width={400} height={400} unoptimized />
+                                        )
+                                    })
+                                }
+                            </Slider> : ""
+                    }
 
 
                     <div className="TextPart w-full h-full min-w-[200px] text-slate-600 font-bold text-base mt-2 flex flex-row items-start justify-start ml-4">
@@ -122,8 +265,6 @@ function PostLayout({ PostData, UserData, PostUserData }) {
 
                 </div>
             </div>
-
-
         </div>
     )
 }

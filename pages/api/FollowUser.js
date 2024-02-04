@@ -11,28 +11,25 @@ export default async function handler(req, res) {
         const DecryptedData = JSON.parse(DecryptData(AllData)).toSendData
 
         let { Username, newFollowing, FriendUsername, newFollowers } = DecryptedData[0]
+        newFollowers = []
 
-        if (!newFollowers) {
-            newFollowers = []
-
-            const { data, error } = await supabase.from("UserData").select("Followers").eq("Username", FriendUsername)
-
-            if (error) {
-                console.log(error)
-                return res.status(401).json({ message: error, ok: false })
-            }
-
-            newFollowers = data[0].Followers.filter((data) => {
-                return data != Username
-            })
-        }
-
-
-        const { error } = await supabase.from("UserData").update({ Following: newFollowing }).eq("Username", Username)
+        let { data, error } = await supabase.from("UserData").select("Followers").eq("Username", FriendUsername)
 
         if (error) {
             console.log(error)
-            return res.status(401).json({ message: error.message, ok: false })
+            return res.status(401).json({ message: error, ok: false })
+        }
+
+        newFollowers = data[0].Followers.filter((data) => {
+            return data != Username
+        })
+
+
+        const { error1 } = await supabase.from("UserData").update({ Following: newFollowing }).eq("Username", Username)
+
+        if (error1) {
+            console.log(error1)
+            return res.status(401).json({ message: error1.message, ok: false })
         }
 
         const { error2 } = await supabase.from("UserData").update({ Followers: newFollowers }).eq("Username", FriendUsername)
