@@ -26,30 +26,11 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
     useEffect(() => {
         const user_profile_pic = document.getElementById("user_profile_pic")
 
-
-
-        async function ConvertToBase64(url) {
-            if (url == "Default") {
-                return "Default"
-            }
-            const response = await fetch(url)
-            const blob = await response.blob()
-            const base64 = await new Promise((resolve, reject) => {
-                const reader = new FileReader
-                reader.onerror = reject
-                reader.onload = () => {
-                    resolve(reader.result)
-                }
-                reader.readAsDataURL(blob)
-            })
-            return base64
-        }
-
         async function setBase64() {
             const url = await FetchImage(ProfilePic, "profile-pictures")
 
             if (url != "Default") {
-                user_profile_pic.src = await ConvertToBase64(url)
+                user_profile_pic.src = url
             }
         }
 
@@ -263,27 +244,6 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
         })
     }
 
-    const ConvertBlobToBase64 = (blob) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader
-            reader.onerror = reject
-            reader.onload = () => {
-                resolve(reader.result)
-            }
-            reader.readAsDataURL(blob)
-        })
-    }
-
-    const ConvertToBase64 = async (url) => {
-        if (url == "Default") {
-            return "Default"
-        }
-        const response = await fetch(url)
-        const blob = await response.blob()
-        const base64 = await ConvertBlobToBase64(blob)
-        return base64
-    }
-
     const search_user = (e) => {
         setFindIsLoading(true)
         const username = friendUsernameInpRef.current.value
@@ -494,23 +454,6 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
     }
 
     useEffect(() => {
-        async function ConvertToBase64(url) {
-            if (url == "Default") {
-                return "Default"
-            }
-            const response = await fetch(url)
-            const blob = await response.blob()
-            const base64 = await new Promise((resolve, reject) => {
-                const reader = new FileReader
-                reader.onerror = reject
-                reader.onload = () => {
-                    resolve(reader.result)
-                }
-                reader.readAsDataURL(blob)
-            })
-            return base64
-        }
-
         const followersProfilePicture = document.getElementsByClassName("followersProfilePicture")
         const followingProfilePicture = document.getElementsByClassName("followingProfilePicture")
 
@@ -562,7 +505,6 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                 // console.log(await ProfilePic.json())
 
                 const result = await ProfilePic.json()
-                console.log(result)
                 BaseData[username] = {
                     "IMG": "",
                     "NAME": ""

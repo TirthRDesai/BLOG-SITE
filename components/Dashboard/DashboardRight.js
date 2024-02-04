@@ -6,6 +6,8 @@ import Posts from './RightSideComponents/Posts'
 import { Button } from '@/components/ui/button'
 import { ClientSideCookies } from '../CustomCookie'
 import AddPosts from './RightSideComponents/AddPosts'
+import Swal from 'sweetalert2'
+import { createClient } from '@supabase/supabase-js'
 
 function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, setData }) {
 
@@ -311,6 +313,105 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
         }
     }, [postsUser])
 
+    const DeleteAccount = () => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const span = document.createElement('span');
+                span.innerHTML = "Please write <strong>" + MainData.Username + "</strong> to confirm"
+
+                Swal.fire({
+                    title: "Confirmation!",
+                    html: span,
+                    input: 'text',
+                    inputAttributes: {
+                        autocapitalize: 'off',
+                        placeholder: "Write here"
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Delete',
+                    showLoaderOnConfirm: true,
+                    preConfirm: async (input) => {
+                        if (input.toLowerCase() === MainData.Username.toLowerCase()) {
+                            const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+                            const UserDataResponse = await supabase
+                                .from('UserData')
+                                .delete()
+                                .eq('id', MainData.id)
+
+                            console.log(UserDataResponse)
+
+                            if (UserDataResponse.error) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Oops...',
+                                    text: UserDataResponse.error.message
+                                })
+                            }
+
+
+
+                            else {
+                                const PostDataResponse = await supabase.from("Posts").select("*").eq("Username", MainData.Username)
+
+                                console.log(PostDataResponse)
+
+                                if (PostDataResponse.data.length > 0) {
+                                    const PostData = PostDataResponse.data
+
+                                    for (let i = 0; i < PostData.length; i++) {
+                                        const Post = PostData[i]
+                                        const postId = Post.id
+                                        let Image1 = Post.Image1 + ".jpg"
+                                        let Image2 = Post.Image2 + ".jpg"
+                                        let Image3 = Post.Image3 + ".jpg"
+
+                                        const ImageDeletion = await supabase.storage.from("posts").remove([Image1, Image2, Image3])
+
+                                        const PostDeletion = await supabase.from("Posts").delete().eq("id", postId)
+                                    }
+
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Account Deleted',
+                                        text: 'Your account has been deleted successfully',
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    })
+
+                                    setTimeout(() => {
+                                        const clientSideCookies = new ClientSideCookies()
+                                        clientSideCookies.clear()
+                                        localStorage.clear()
+                                        window.location.href = "/"
+                                    }, 1500)
+
+
+                                }
+
+                            }
+
+
+                        }
+                        else {
+                            Swal.showValidationMessage(
+                                `You need to write ` + MainData.Username + ` to confirm`
+                            )
+                        }
+                    },
+                })
+            }
+        })
+    }
+
     return (
 
         <div className={styles.DashboardRight}>
@@ -331,7 +432,7 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
                             setPostsUser(Username)
                         }}
                     >Your Posts</Button>
-                    <Button className='w-full invisible opacity-30'>Delete Account</Button>
+                    <Button className='w-full invisible opacity-30' onClick={() => DeleteAccount()}>Delete Account</Button>
                 </div>
             </div>
 
