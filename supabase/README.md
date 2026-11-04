@@ -26,7 +26,7 @@ npx supabase link --project-ref <NEW_PROJECT_REF>
 npx supabase db push --dry-run     # review
 npx supabase db push
 ```
-Then set the app env vars from the new project (URL, anon key, service-role key).
+Then set the app env vars from the new project (URL, publishable key, secret key).
 
 Pushing into the OLD project would leave the old insecure `UserData` / `Posts` tables in place. Only wipe them
 after you have exported anything you need (`supabase db reset --linked` is destructive).
@@ -38,7 +38,7 @@ passwords via Supabase Auth.
 ## Running the app against it
 ```bash
 npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit
-npx supabase status -o env      # copy API_URL / ANON_KEY / SERVICE_ROLE_KEY into .env.local (see .env.example)
+npx supabase status -o env      # copy API_URL / PUBLISHABLE_KEY / SECRET_KEY into .env.local (see .env.example)
 npm run dev
 ```
 In production set the same three variables from your Supabase project in Vercel. If you turn on
