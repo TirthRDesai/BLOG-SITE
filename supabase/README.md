@@ -24,7 +24,7 @@ Prefer a **fresh Supabase project** (cleanest "replace everything"; the old one 
 npx supabase login
 npx supabase link --project-ref <NEW_PROJECT_REF>
 npx supabase db push --dry-run     # review
-npx supabase db push
+npx supabase db push    # applies only migrations your project has not run yet
 ```
 Then set the app env vars from the new project (URL, publishable key, secret key).
 
