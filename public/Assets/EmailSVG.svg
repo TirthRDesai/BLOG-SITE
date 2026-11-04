@@ -1,9 +1,0 @@
-<svg viewBox="62.672 16.385 270.122 184.468" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
-  <defs></defs>
-  <g transform="matrix(1, 0, 0, 1, 10.981414, -208.646857)">
-    <rect x="62.617" y="233.263" width="247.191" height="165.73" rx="10" ry="10" style="stroke-width: 2; fill: none; stroke: #fff;"></rect>
-    <path d="M 183.696 256.471 Q 187.896 252.77 192.095 256.471 L 288.682 341.588 Q 292.881 345.289 284.482 345.289 L 91.309 345.289 Q 82.91 345.289 87.109 341.588 Z" style="stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; transform-box: fill-box; transform-origin: 50% 50%; fill: none; stroke: #fff;" transform="matrix(-1, 0, 0, -1, 0, 0)" bx:shape="triangle 82.91 252.77 209.971 92.519 0.5 0.04 1@1380ecbd"></path>
-    <path style="stroke-width: 2; fill: none; stroke: #fff;" d="M 64.968 396.406 C 67.848 394.966 162.003 327.147 165.471 327.147"></path>
-    <path style="stroke-width: 2; paint-order: stroke; transform-box: fill-box; transform-origin: 50% 50%; fill: none; stroke: #fff;" d="M 208.246 395.885 C 211.126 394.445 305.281 326.626 308.749 326.626" transform="matrix(0.34202, 0.939693, -0.939693, 0.34202, 0.000014, 0.000023)"></path>
-  </g>
-</svg>

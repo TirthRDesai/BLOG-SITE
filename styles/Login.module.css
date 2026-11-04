@@ -1,9 +1,0 @@
-.LoginLayout {
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-self: center;
-	height: 100vh;
-	width: 100vw;
-	overflow: hidden;
-}

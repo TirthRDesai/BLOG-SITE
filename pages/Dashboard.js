@@ -1,112 +1,102 @@
-import React, { useEffect, useState } from 'react'
-import styles from "../styles/Dashboard.module.css"
-import DashboardLeft from '../components/Dashboard/DashboardLeft'
-import DashboardRight from '../components/Dashboard/DashboardRight'
-import { getSession } from '../lib/auth'
-import DashboardFallback from '../components/Dashboard/DashboardFallback'
-import useSWR from 'swr'
-import { DecryptData } from '../components/EncryptingFunctions'
+import Head from "next/head"
+import { useCallback, useState } from "react"
+import { useRouter } from "next/router"
+import useSWR from "swr"
+import { getSession } from "../lib/auth"
+import { api, unwrap } from "../lib/client"
+import Shell from "../components/Shell"
+import Feed, { Composer } from "../components/Feed"
+import { Profile, Connections } from "../components/Profile"
+import { FindPeople, Suggested } from "../components/People"
+import Settings from "../components/Settings"
+import { Confirm, ToastProvider } from "../components/ui"
 
+export default function Dashboard({ Username }) {
+    const router = useRouter()
+    const { data: me, error: meError, mutate: refreshMe } = useSWR("/api/GetUserData/" + Username, (k) => api(k).then(unwrap), { revalidateOnFocus: true })
+    if (meError?.status === 401 && typeof window !== "undefined") window.location.href = "/"
+    const [stack, setStack] = useState([{ name: "home" }])
+    const [loggingOut, setLoggingOut] = useState(false)
+    const [busy, setBusy] = useState(false)
+    const view = stack[stack.length - 1]
 
-function Dashboard({ Username, NewUser }) {
+    // Sidebar destinations reset history; openProfile (below) stacks so Back works.
+    const nav = useCallback((name, extra = {}) => {
+        setStack([{ name, ...extra }])
+        window.scrollTo({ top: 0 })
+    }, [])
 
-    const [fetchOnCall, setFetchOnCall] = useState(false)
+    const openProfile = useCallback((username) => {
+        setStack((s) => [...s, { name: "profile", username }])
+        window.scrollTo({ top: 0 })
+    }, [])
 
-    const [UserData, setUserData] = useState(null)
+    const back = stack.length > 1 ? () => setStack((s) => s.slice(0, -1)) : undefined
 
-    const [Action, setAction] = useState('POSTS')
-    const [Data, setData] = useState({})
-
-    useEffect(() => {
-        if (NewUser == "true" || NewUser == true) {
-            // console.log("HERE")
-
+    const logout = async () => {
+        setBusy(true)
+        try {
+            await api("/api/Logout", { method: "POST" })
+        } finally {
+            router.push("/")
         }
-    }, [NewUser])
+    }
 
-    useEffect(() => {
-        async function fetchData() {
-            const response = await fetch("/api/GetUserData/" + Username, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-
-            })
-            const userData = await response.json()
-            if (userData.ok) {
-                setUserData(JSON.parse(DecryptData(userData.data)))
-            }
-            setFetchOnCall(false)
-        }
-        if (fetchOnCall) {
-            fetchData()
-        }
-    }, [fetchOnCall, Username])
-
-    const fetcher =
-        async (Username) => {
-            const response = await fetch("/api/GetUserData/" + Username, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            })
-            const userData = await response.json()
-
-            return JSON.parse(DecryptData(userData.data))
-        }
-
-    const { data, error } = useSWR(
-        Username,
-        fetcher,
-        {
-            refreshInterval: 600 * 1000,
-            revalidateOnFocus: true
-        }
-    )
-    useEffect(() => {
-        if (data) {
-            setUserData(data)
-        }
-    }, [data])
-
-    if (error) {
-        console.log(error)
+    if (!me) {
         return (
-            <div>
-                Error
+            <div style={{ padding: 29, maxWidth: 760 }}>
+                <div className="skeleton" style={{ marginBottom: 14 }} />
+                <div className="skeleton" />
             </div>
         )
     }
 
-    if (!data) {
-        return (
-            <DashboardFallback />
-        )
-    }
-
-
+    const refresh = () => refreshMe()
+    const rail = <Suggested key={me.Following.join(",")} onOpenProfile={openProfile} onMeChanged={refresh} />
 
     return (
-
-        <div className={styles.DashboardLayout}>
-            <DashboardLeft UserData={UserData} setFetchOnCall={setFetchOnCall} setAction={setAction} setData={setData} />
-            <DashboardRight Action={Action} Data={Data} setFetchOnCall={setFetchOnCall} UserData={UserData} setAction={setAction} setData={setData} />
-        </div>
+        <ToastProvider>
+            <Head><title>BlogSite</title></Head>
+            <Shell me={me} view={view} onNav={nav} onLogout={() => setLoggingOut(true)}>
+                {view.name === "home" && (
+                    <>
+                        <div className="col">
+                            <Feed
+                                me={me}
+                                username="*"
+                                onOpenProfile={openProfile}
+                                onMeChanged={refresh}
+                                emptyTitle="It's quiet in here"
+                                emptyBody="Publish the first story and it will show up for everyone."
+                                header={({ refresh: refreshFeed }) => <Composer me={me} onPosted={() => { refreshFeed(); refresh() }} />}
+                            />
+                        </div>
+                        {rail}
+                    </>
+                )}
+                {view.name === "profile" && (
+                    <>
+                        <div className="col">
+                            <Profile key={view.username} me={me} username={view.username} onOpenProfile={openProfile} onMeChanged={refresh} onNav={nav} onBack={back} />
+                        </div>
+                        {rail}
+                    </>
+                )}
+                {view.name === "connections" && (
+                    <Connections key={view.username} me={me} username={view.username} tab={view.tab} onOpenProfile={openProfile} onMeChanged={refresh} />
+                )}
+                {view.name === "find" && <FindPeople key={view.q || "find"} initial={view.q || ""} onOpenProfile={openProfile} onMeChanged={refresh} />}
+                {view.name === "settings" && <Settings me={me} onMeChanged={refresh} />}
+            </Shell>
+            {loggingOut && (
+                <Confirm title="Log out?" body="You'll need to sign in again to read and write stories." confirmLabel="Log out" busy={busy} onConfirm={logout} onClose={() => setLoggingOut(false)} />
+            )}
+        </ToastProvider>
     )
-
-
 }
-
-export default Dashboard
 
 export async function getServerSideProps(context) {
     const session = await getSession(context.req, context.res)
-
-    if (!session) {
-        return { redirect: { destination: '/', permanent: false } }
-    }
-
-    return { props: { Username: session.profile.username, NewUser: false } }
+    if (!session) return { redirect: { destination: "/", permanent: false } }
+    return { props: { Username: session.profile.username } }
 }
