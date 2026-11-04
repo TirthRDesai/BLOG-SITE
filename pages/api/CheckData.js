@@ -1,31 +1,35 @@
-import { createClient } from "@supabase/supabase-js"
-
-const CryptoJs = require('crypto-js')
+import { supabase, SELF_FIELDS } from "@/lib/supabaseServer"
+import { verifyPassword, hashPassword, createSession } from "@/lib/auth"
+import { EncryptData } from "@/components/EncryptingFunctions"
 
 export default async function handler(req, res) {
+    if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed", ok: false })
 
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-
-    const { username, password } = req.body
+    const username = String(req.body?.username ?? "").trim().toLowerCase()
+    const password = req.body?.password
 
     const { data, error } = await supabase
-        .from('UserData')
-        .select('*')
-        .eq('Username', username)
+        .from("UserData")
+        .select(SELF_FIELDS + ", Password")
+        .eq("Username", username)
 
     if (error) {
         console.log(error)
-        return res.status(401).json({ message: error.message, ok: false })
+        return res.status(500).json({ message: "Login failed", ok: false })
     }
 
-    if (data.length == 0) {
-        return res.status(401).json({ message: "User not found", ok: false })
+    // Same message for unknown user / wrong password (no user enumeration).
+    const fail = () => res.status(401).json({ message: "Incorrect username or password", ok: false })
+    if (data.length === 0) return fail()
+
+    const { Password: stored, ...user } = data[0]
+    const result = await verifyPassword(stored, password)
+    if (!result.ok) return fail()
+
+    if (result.needsUpgrade) {
+        await supabase.from("UserData").update({ Password: await hashPassword(password) }).eq("Username", username)
     }
 
-    if (data[0].Password == password) {
-        const out = CryptoJs.AES.encrypt(JSON.stringify(data[0]), process.env.NEXT_PUBLIC_KEY)
-        return res.status(200).json({ message: "Login successful", ok: true, data: out.toString() })
-    } else {
-        return res.status(401).json({ message: "Incorrect password", ok: false })
-    }
+    await createSession(res, user.Username)
+    return res.status(200).json({ message: "Login successful", ok: true, data: EncryptData(JSON.stringify(user)) })
 }

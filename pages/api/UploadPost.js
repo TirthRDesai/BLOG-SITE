@@ -1,106 +1,68 @@
-import { createClient } from "@supabase/supabase-js"
-import { Formidable } from 'formidable'
+import { Formidable } from "formidable"
+import { createReadStream } from "fs"
+import { supabase } from "@/lib/supabaseServer"
+import { requireUser } from "@/lib/auth"
 
-const CryptoJs = require('crypto-js')
-const fs = require('fs')
+const MAX_BYTES = 5 * 1024 * 1024
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
 
 export default async function handler(req, res) {
+    if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed", ok: false })
+    const me = await requireUser(req, res)
+    if (!me) return
+
     try {
-        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-
-        // const { Username, TextPart, Image1, Image2, Image3 } = req.body
-
-        const { err, fields, files } = await new Promise((resolve, reject) => {
-            const form = new Formidable()
-            form.parse(req, (err, fields, files) => {
-                if (err) reject(err)
-                resolve({ fields, files })
-            })
+        const { fields, files } = await new Promise((resolve, reject) => {
+            const form = new Formidable({ maxFileSize: MAX_BYTES, maxFiles: 3 })
+            form.parse(req, (err, fields, files) => (err ? reject(err) : resolve({ fields, files })))
         })
 
-        if (err) {
-            console.log(err)
-            return res.status(500).json({ message: "Error Occurred", ok: false })
+        const TextPart = fields.TextPart?.[0]
+        if (typeof TextPart !== "string" || !TextPart.trim() || TextPart.length > 5000) {
+            return res.status(400).json({ message: "Post text required (max 5000 chars)", ok: false })
         }
 
-        let { Username, TextPart } = fields
-        Username = Username[0]
-        TextPart = TextPart[0]
-
-
-        let { Image1, Image2, Image3 } = files
-        Image1 = Image1[0]
-        Image2 = Image2[0]
-        Image3 = Image3[0]
-
-
-
-
-        const response = await supabase.from("Posts").insert({
-            Username: Username,
-            TextPart: TextPart,
-        }).select("*")
-
-        if (response.error) {
-            return res.status(401).json({ message: response.error.message, ok: false })
-        }
-
-        const selectedData = response.data
-
-        if (Image1) {
-            const { data, error } = await supabase.storage.from("posts").upload(selectedData[0].Image1 + ".jpg", (fs.createReadStream(Image1.filepath)), {
-                cacheControl: '3600',
-                contentType: 'image/jpeg',
-                duplex: 'half',
-                upsert: true
-            })
-
-            if (error) {
-                console.log(error)
-                return res.status(401).json({ message: error, ok: false })
-            }
-
-        }
-
-        if (Image2) {
-            const { data, error } = await supabase.storage.from("posts").upload(selectedData[0].Image2 + ".jpg", fs.createReadStream(Image2.filepath), {
-                cacheControl: '3600',
-                contentType: 'image/jpeg',
-                duplex: 'half',
-                upsert: true
-            })
-
-            if (error) {
-                console.log(error)
-                return res.status(401).json({ message: error, ok: false })
+        const images = ["Image1", "Image2", "Image3"].map((k) => files[k]?.[0] ?? null)
+        for (const img of images) {
+            if (img && !ALLOWED_TYPES.includes(img.mimetype)) {
+                return res.status(400).json({ message: "Only JPEG, PNG or WebP images allowed", ok: false })
             }
         }
 
-        if (Image3) {
-            const { data, error } = await supabase.storage.from("posts").upload(selectedData[0].Image3 + ".jpg", fs.createReadStream(Image3.filepath), {
-                cacheControl: '3600',
-                contentType: 'image/jpeg',
-                duplex: 'half',
-                upsert: true
-            })
+        // Username comes from the session, never from the request.
+        const insert = await supabase.from("Posts").insert({ Username: me, TextPart }).select("*").single()
+        if (insert.error) {
+            console.log(insert.error)
+            return res.status(400).json({ message: "Could not create post", ok: false })
+        }
+        const post = insert.data
 
+        for (let i = 0; i < images.length; i++) {
+            const img = images[i]
+            if (!img) continue
+            const { error } = await supabase.storage
+                .from("posts")
+                .upload(post["Image" + (i + 1)] + ".jpg", createReadStream(img.filepath), {
+                    cacheControl: "3600",
+                    contentType: img.mimetype,
+                    duplex: "half",
+                    upsert: false,
+                })
             if (error) {
                 console.log(error)
-                return res.status(401).json({ message: error, ok: false })
+                return res.status(400).json({ message: "Image upload failed", ok: false })
             }
         }
 
         return res.status(200).json({ message: "Post Uploaded", ok: true })
     } catch (e) {
         console.log(e)
-        return res.status(500).json({ message: "Error Occurred", ok: false })
-
+        return res.status(400).json({ message: "Upload failed", ok: false })
     }
 }
 
-
 export const config = {
     api: {
-        bodyParser: false
-    }
+        bodyParser: false,
+    },
 }

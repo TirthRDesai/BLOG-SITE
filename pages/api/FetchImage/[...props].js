@@ -1,12 +1,17 @@
 
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabaseServer"
+import { requireUser } from "@/lib/auth"
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+const BUCKETS = ["profile-pictures", "posts"]
 
 export default async function handler(req, res) {
     try {
+        if (!(await requireUser(req, res))) return
         const Filename = JSON.parse(req.query.props[0])
         const Path = req.query.props[1]
+        if (!BUCKETS.includes(Path) || !Array.isArray(Filename) || Filename.length > 20) {
+            return res.status(400).json({ message: "Invalid request", ok: false })
+        }
 
         const urls = []
 

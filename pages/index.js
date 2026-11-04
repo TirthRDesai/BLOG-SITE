@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import Login from '../components/Login'
 import { EncryptData, DecryptData } from '../components/EncryptingFunctions'
 import { useRouter } from 'next/router'
-import { ClientSideCookies, ServerSideCookies } from '../components/CustomCookie'
+import { ClientSideCookies } from '../components/CustomCookie'
+import { getSessionUser } from '../lib/auth'
 
 const CryptoJS = require('crypto-js')
 
@@ -194,31 +195,11 @@ export default function Home({ response }) {
 }
 
 export async function getServerSideProps(context) {
-    const { req, res } = context
+    const user = await getSessionUser(context.req)
 
-
-    const serverSideCookie = new ServerSideCookies(req, res)
-
-
-    const isLoggedIn = serverSideCookie.getCustomCookie("isLoggedIn")
-
-    if (isLoggedIn == "Yes") {
-        return {
-            redirect: {
-                destination: "/Dashboard",
-
-                permanent: false,
-
-
-            }
-        }
+    if (user) {
+        return { redirect: { destination: "/Dashboard", permanent: false } }
     }
 
-    serverSideCookie.setCustomCookie("isLoggedIn", "No")
-
-    return {
-        props: {
-            response: "result"
-        }
-    }
+    return { props: { response: "result" } }
 }

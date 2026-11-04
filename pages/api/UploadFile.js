@@ -1,55 +1,57 @@
-import { createClient } from "@supabase/supabase-js"
-import { Formidable } from 'formidable'
-import { DecryptData } from "../../components/EncryptingFunctions"
+import { Formidable } from "formidable"
+import { createReadStream } from "fs"
+import { supabase } from "@/lib/supabaseServer"
+import { requireUser } from "@/lib/auth"
 
+const MAX_BYTES = 5 * 1024 * 1024
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
+
+// Profile picture upload ONLY. The target bucket and filename are decided on the server
+// (the caller's own ProfilePic id), so clients cannot overwrite arbitrary files.
 export default async function handler(req, res) {
-    if (req.method === "POST") {
-        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    if (req.method !== "POST") return res.status(405).json({ message: "Invalid Request", ok: false })
+    const me = await requireUser(req, res)
+    if (!me) return
 
-
-        const { err, fields, files } = await new Promise((resolve, reject) => {
-            const form = new Formidable()
-            form.parse(req, (err, fields, files) => {
-                if (err) reject(err)
-                resolve({ fields, files })
-            })
+    try {
+        const { files } = await new Promise((resolve, reject) => {
+            const form = new Formidable({ maxFileSize: MAX_BYTES, maxFiles: 1 })
+            form.parse(req, (err, fields, files) => (err ? reject(err) : resolve({ fields, files })))
         })
 
-        if (err) {
-            return res.status(500).json({ message: "Error Occurred", ok: false })
+        const file = files.FileData?.[0]
+        if (!file) return res.status(400).json({ message: "No file", ok: false })
+        if (!ALLOWED_TYPES.includes(file.mimetype)) {
+            return res.status(400).json({ message: "Only JPEG, PNG or WebP images allowed", ok: false })
         }
 
-        let { Username, Filename, Bucket } = fields
+        const user = await supabase.from("UserData").select("ProfilePic").eq("Username", me).maybeSingle()
+        if (user.error || !user.data?.ProfilePic) {
+            return res.status(400).json({ message: "Profile not found", ok: false })
+        }
 
-        let { FileData } = files
-
-        Filename = DecryptData(Filename[0])
-        Bucket = DecryptData(Bucket[0])
-        FileData = FileData[0]
-        Username = Username[0]
-
-        const { data, error } = await supabase.storage.from(Bucket).upload(Filename, (require('fs').createReadStream(FileData.filepath)), {
-            cacheControl: '3600',
-            contentType: 'image/jpeg',
-            duplex: 'half',
-            upsert: true
-        })
+        const { error } = await supabase.storage
+            .from("profile-pictures")
+            .upload(user.data.ProfilePic + ".jpg", createReadStream(file.filepath), {
+                cacheControl: "3600",
+                contentType: file.mimetype,
+                duplex: "half",
+                upsert: true,
+            })
 
         if (error) {
             console.log(error)
-            return res.status(401).json({ message: error, ok: false })
+            return res.status(400).json({ message: "Upload failed", ok: false })
         }
-
-
         return res.status(200).json({ message: "Image uploaded", ok: true })
-    } else {
-        return res.status(401).json({ message: "Invalid Request", ok: false })
+    } catch (e) {
+        console.log(e)
+        return res.status(400).json({ message: "Upload failed", ok: false })
     }
 }
 
-
 export const config = {
     api: {
-        bodyParser: false
-    }
+        bodyParser: false,
+    },
 }

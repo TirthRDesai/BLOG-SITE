@@ -174,7 +174,7 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                 const clientSideCookies = new ClientSideCookies()
                 clientSideCookies.deleteCustomCookie("Username")
                 clientSideCookies.deleteCustomCookie("isLoggedIn")
-                router.push("/")
+                fetch("/api/Logout", { method: "POST" }).finally(() => router.push("/"))
             }
         })
     }

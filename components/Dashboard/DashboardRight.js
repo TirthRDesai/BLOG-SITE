@@ -340,66 +340,32 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
                     showLoaderOnConfirm: true,
                     preConfirm: async (input) => {
                         if (input.toLowerCase() === MainData.Username.toLowerCase()) {
-                            const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+                            const response = await fetch("/api/DeleteAccount", { method: "POST" })
+                            const result = await response.json()
 
-                            const UserDataResponse = await supabase
-                                .from('UserData')
-                                .delete()
-                                .eq('id', MainData.id)
-
-                            console.log(UserDataResponse)
-
-                            if (UserDataResponse.error) {
+                            if (!result.ok) {
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Oops...',
-                                    text: UserDataResponse.error.message
+                                    text: result.message
                                 })
                             }
-
-
-
                             else {
-                                const PostDataResponse = await supabase.from("Posts").select("*").eq("Username", MainData.Username)
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Account Deleted',
+                                    text: 'Your account has been deleted successfully',
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                })
 
-                                console.log(PostDataResponse)
-
-                                if (PostDataResponse.data.length > 0) {
-                                    const PostData = PostDataResponse.data
-
-                                    for (let i = 0; i < PostData.length; i++) {
-                                        const Post = PostData[i]
-                                        const postId = Post.id
-                                        let Image1 = Post.Image1 + ".jpg"
-                                        let Image2 = Post.Image2 + ".jpg"
-                                        let Image3 = Post.Image3 + ".jpg"
-
-                                        const ImageDeletion = await supabase.storage.from("posts").remove([Image1, Image2, Image3])
-
-                                        const PostDeletion = await supabase.from("Posts").delete().eq("id", postId)
-                                    }
-
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Account Deleted',
-                                        text: 'Your account has been deleted successfully',
-                                        showConfirmButton: false,
-                                        timer: 1500
-                                    })
-
-                                    setTimeout(() => {
-                                        const clientSideCookies = new ClientSideCookies()
-                                        clientSideCookies.clear()
-                                        localStorage.clear()
-                                        window.location.href = "/"
-                                    }, 1500)
-
-
-                                }
-
+                                setTimeout(() => {
+                                    const clientSideCookies = new ClientSideCookies()
+                                    clientSideCookies.clear()
+                                    localStorage.clear()
+                                    window.location.href = "/"
+                                }, 1500)
                             }
-
-
                         }
                         else {
                             Swal.showValidationMessage(

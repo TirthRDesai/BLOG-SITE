@@ -1,9 +1,10 @@
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabaseServer"
+import { requireUser } from "@/lib/auth"
 
 export default async function handler(req, res) {
     try {
-        const { Username } = req.body
-        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+        if (!(await requireUser(req, res))) return
+        const Username = String(req.body?.Username ?? "").toLowerCase()
 
 
         let { data, error } = await supabase.from("UserData").select(

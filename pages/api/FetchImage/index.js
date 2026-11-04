@@ -1,16 +1,21 @@
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabaseServer"
+import { requireUser } from "@/lib/auth"
 import { DecryptData, EncryptData } from '@/components/EncryptingFunctions'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+const BUCKETS = ["profile-pictures", "posts"]
 
 export default async function handler(req, res) {
     try {
+        if (!(await requireUser(req, res))) return
         const { AllData } = req.body
 
 
         const DecryptedData = JSON.parse(DecryptData(AllData))[0]
 
         const { Filename, Path } = DecryptedData
+        if (!BUCKETS.includes(Path) || typeof Filename !== "string" || Filename.includes("..")) {
+            return res.status(400).json({ message: "Invalid request", ok: false })
+        }
         const { data, error } = await supabase.storage.from(Path).createSignedUrl(Filename, 600)
 
         if (error) {

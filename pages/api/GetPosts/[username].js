@@ -1,12 +1,12 @@
-import { ServerSideCookies } from "@/components/CustomCookie"
+import { getSessionUser } from "@/lib/auth"
+import { supabase } from "@/lib/supabaseServer"
 import { EncryptData } from "@/components/EncryptingFunctions"
-import { createClient } from "@supabase/supabase-js"
-
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
 
 export default async function handler(req, res) {
 
+    const mainUsername = await getSessionUser(req)
+    if (!mainUsername) return res.status(401).json({ message: "Not authenticated", ok: false })
     const { username } = req.query
     let response = null
 
@@ -54,9 +54,6 @@ export default async function handler(req, res) {
 
     const AllPosts = []
 
-    const serverSideCookies = new ServerSideCookies(req, res)
-
-    const mainUsername = serverSideCookies.getCustomCookie("Username")
 
     for (let i = 0; i < data.length; i++) {
         const PostData = data[i]
