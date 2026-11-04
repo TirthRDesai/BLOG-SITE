@@ -1,22 +1,13 @@
-import { EncryptData } from "@/components/EncryptingFunctions"
-import { createClient } from "@supabase/supabase-js"
+import { requireSession } from "@/lib/auth"
+import { getLegacyUser } from "@/lib/shapes"
 
+// POST { Username } - profile of any user; email included only for yourself.
 export default async function handler(req, res) {
-    const { Username } = req.body
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-    const { data, error } = await supabase
-        .from('UserData')
-        .select('*')
-        .eq('Username', Username)
-
-    if (error) {
-        return res.status(401).json({ message: error.message, ok: false })
-    }
-
-    if (data.length == 0) {
-        return res.status(401).json({ message: "User not found", ok: false })
-    }
-
-    return await res.status(200).json({ message: "User found", ok: true, data: EncryptData(JSON.stringify(data[0])) })
-
+    const session = await requireSession(req, res)
+    if (!session) return
+    const Username = String(req.body?.Username ?? "").toLowerCase()
+    const isMe = Username === session.profile.username
+    const user = await getLegacyUser(session.supabase, Username, isMe ? session.user.email : undefined)
+    if (!user) return res.status(404).json({ message: "User not found", ok: false })
+    return res.status(200).json({ message: "User found", ok: true, data: JSON.stringify(user) })
 }

@@ -3,11 +3,10 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import Slider from 'react-slick'
 import styles from '../../../styles/PostLayout.module.css'
-import StaticFunctions from '@/pages/api/StaticFunctions'
+import StaticFunctions from '@/lib/StaticFunctions'
 import { DecryptData } from '@/components/EncryptingFunctions'
 import Swal from 'sweetalert2'
 import { createBrowserClient } from '@supabase/ssr'
-import { createClient } from '@supabase/supabase-js'
 
 function PostLayout({ PostData, UserData, PostUserData, setAction, setData, setFetchOnCall }) {
 
@@ -138,31 +137,8 @@ function PostLayout({ PostData, UserData, PostUserData, setAction, setData, setF
         setFetchOnCall(true)
     }
 
-    const DeleteImages = async () => {
-        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-
-        let isImagesDeleted = true
-
-        for (let i = 0; i < Data.ImagePart.length; i++) {
-            let image = Data.ImagePart[i].split("/")
-            image = image[image.length - 1]
-
-            const imageResponse = await supabase.storage.from("posts").remove(image)
-
-            if (imageResponse.error) {
-                isImagesDeleted = false
-                break
-            }
-        }
-
-
-
-        if (isImagesDeleted) {
-            return true
-        } else {
-            return false
-        }
-    }
+    // Images are now deleted server-side by /api/DeletePost (which also checks ownership).
+    const DeleteImages = async () => true
 
     const DeletePost = async (e, postId) => {
         const button = e.target

@@ -1,14 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import Login from '../components/Login'
-import { EncryptData, DecryptData } from '../components/EncryptingFunctions'
 import { useRouter } from 'next/router'
-import { ClientSideCookies, ServerSideCookies } from '../components/CustomCookie'
-
-const CryptoJS = require('crypto-js')
+import { getSession } from '../lib/auth'
 
 export default function Home({ response }) {
-
-    const clientSideCookies = new ClientSideCookies()
 
     const [login, setLogin] = useState(true)
     const [username, setUsername] = useState(null)
@@ -129,18 +124,7 @@ export default function Home({ response }) {
             })
             const result = await response.json()
             if (result.ok) {
-                const data = CryptoJS.AES.decrypt(result.data, process.env.NEXT_PUBLIC_KEY)
-                const DataReceived = JSON.parse(data.toString(CryptoJS.enc.Utf8))
-
-                clientSideCookies.setCustomCookie("Username", DataReceived.Username)
-                clientSideCookies.setCustomCookie("isLoggedIn", "Yes")
-
-                router.push({
-                    pathname: "/Dashboard",
-                    query: {
-                        NewUser: false
-                    }
-                }, "Dashboard")
+                router.push("/Dashboard")
             } else {
                 alert(result.message)
             }
@@ -161,17 +145,11 @@ export default function Home({ response }) {
             const result = await response.json()
 
             if (result.ok) {
-                const data = CryptoJS.AES.decrypt(result.data, process.env.NEXT_PUBLIC_KEY)
-                const DataReceived = JSON.parse(data.toString(CryptoJS.enc.Utf8))
-
-                clientSideCookies.setCustomCookie("Username", DataReceived.Username)
-                clientSideCookies.setCustomCookie("isLoggedIn", "Yes")
-                router.push({
-                    pathname: "/Dashboard",
-                    query: {
-                        NewUser: true
-                    }
-                }, "Dashboard")
+                if (result.confirmed) {
+                    router.push("/Dashboard")
+                } else {
+                    alert(result.message)
+                }
             } else {
                 alert(result.message)
             }
@@ -194,31 +172,11 @@ export default function Home({ response }) {
 }
 
 export async function getServerSideProps(context) {
-    const { req, res } = context
+    const session = await getSession(context.req, context.res)
 
-
-    const serverSideCookie = new ServerSideCookies(req, res)
-
-
-    const isLoggedIn = serverSideCookie.getCustomCookie("isLoggedIn")
-
-    if (isLoggedIn == "Yes") {
-        return {
-            redirect: {
-                destination: "/Dashboard",
-
-                permanent: false,
-
-
-            }
-        }
+    if (session) {
+        return { redirect: { destination: "/Dashboard", permanent: false } }
     }
 
-    serverSideCookie.setCustomCookie("isLoggedIn", "No")
-
-    return {
-        props: {
-            response: "result"
-        }
-    }
+    return { props: { response: "result" } }
 }

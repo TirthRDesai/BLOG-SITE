@@ -1,55 +1,50 @@
-import { createClient } from "@supabase/supabase-js"
-import { Formidable } from 'formidable'
-import { DecryptData } from "../../components/EncryptingFunctions"
+import { Formidable } from "formidable"
+import { readFile } from "fs/promises"
+import { randomUUID } from "crypto"
+import { requireSession } from "@/lib/auth"
+import { avatarUrl } from "@/lib/shapes"
 
+const MAX_BYTES = 2 * 1024 * 1024
+const EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }
+
+// Profile picture upload. Path is always <your-user-id>/<random>; storage RLS enforces the folder.
 export default async function handler(req, res) {
-    if (req.method === "POST") {
-        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    if (req.method !== "POST") return res.status(405).json({ message: "Invalid Request", ok: false })
+    const session = await requireSession(req, res)
+    if (!session) return
+    const { supabase, user } = session
 
-
-        const { err, fields, files } = await new Promise((resolve, reject) => {
-            const form = new Formidable()
-            form.parse(req, (err, fields, files) => {
-                if (err) reject(err)
-                resolve({ fields, files })
-            })
+    try {
+        const { files } = await new Promise((resolve, reject) => {
+            const form = new Formidable({ maxFileSize: MAX_BYTES, maxFiles: 1 })
+            form.parse(req, (err, fields, files) => (err ? reject(err) : resolve({ fields, files })))
         })
 
-        if (err) {
-            return res.status(500).json({ message: "Error Occurred", ok: false })
+        const file = files.FileData?.[0]
+        if (!file) return res.status(400).json({ message: "No file", ok: false })
+        if (!EXT[file.mimetype]) return res.status(400).json({ message: "Only JPEG, PNG or WebP images allowed", ok: false })
+
+        const { data: current } = await supabase.from("profiles").select("avatar_path").eq("id", user.id).single()
+
+        const path = `${user.id}/${randomUUID()}.${EXT[file.mimetype]}`
+        const { error } = await supabase.storage
+            .from("avatars")
+            .upload(path, await readFile(file.filepath), { contentType: file.mimetype, cacheControl: "3600" })
+        if (error) return res.status(400).json({ message: "Upload failed", ok: false })
+
+        const { error: updErr } = await supabase.from("profiles").update({ avatar_path: path }).eq("id", user.id)
+        if (updErr) {
+            await supabase.storage.from("avatars").remove([path])
+            return res.status(400).json({ message: "Upload failed", ok: false })
         }
 
-        let { Username, Filename, Bucket } = fields
+        if (current?.avatar_path) await supabase.storage.from("avatars").remove([current.avatar_path])
 
-        let { FileData } = files
-
-        Filename = DecryptData(Filename[0])
-        Bucket = DecryptData(Bucket[0])
-        FileData = FileData[0]
-        Username = Username[0]
-
-        const { data, error } = await supabase.storage.from(Bucket).upload(Filename, (require('fs').createReadStream(FileData.filepath)), {
-            cacheControl: '3600',
-            contentType: 'image/jpeg',
-            duplex: 'half',
-            upsert: true
-        })
-
-        if (error) {
-            console.log(error)
-            return res.status(401).json({ message: error, ok: false })
-        }
-
-
-        return res.status(200).json({ message: "Image uploaded", ok: true })
-    } else {
-        return res.status(401).json({ message: "Invalid Request", ok: false })
+        return res.status(200).json({ message: "Image uploaded", ok: true, url: avatarUrl(supabase, path) })
+    } catch (e) {
+        console.log(e)
+        return res.status(400).json({ message: "Upload failed", ok: false })
     }
 }
 
-
-export const config = {
-    api: {
-        bodyParser: false
-    }
-}
+export const config = { api: { bodyParser: false } }

@@ -1,31 +1,34 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "@/lib/supabase/server"
+import { admin } from "@/lib/supabase/admin"
 
-const CryptoJs = require('crypto-js')
-
+// Login with username (or email) + password.
 export default async function handler(req, res) {
+    if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed", ok: false })
 
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    const identifier = String(req.body?.username ?? "").trim().toLowerCase()
+    const password = req.body?.password
+    const fail = () => res.status(401).json({ message: "Incorrect username or password", ok: false })
 
-    const { username, password } = req.body
+    if (!identifier || typeof password !== "string" || !password) return fail()
 
-    const { data, error } = await supabase
-        .from('UserData')
-        .select('*')
-        .eq('Username', username)
+    try {
+        let email = identifier
+        if (!identifier.includes("@")) {
+            // Supabase Auth signs in by email; resolve the username server-side only.
+            const { data: profile } = await admin().from("profiles").select("id").eq("username", identifier).maybeSingle()
+            if (!profile) return fail()
+            const { data: u } = await admin().auth.admin.getUserById(profile.id)
+            if (!u?.user?.email) return fail()
+            email = u.user.email
+        }
 
-    if (error) {
-        console.log(error)
-        return res.status(401).json({ message: error.message, ok: false })
-    }
+        const supabase = createClient(req, res)
+        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) return fail()
 
-    if (data.length == 0) {
-        return res.status(401).json({ message: "User not found", ok: false })
-    }
-
-    if (data[0].Password == password) {
-        const out = CryptoJs.AES.encrypt(JSON.stringify(data[0]), process.env.NEXT_PUBLIC_KEY)
-        return res.status(200).json({ message: "Login successful", ok: true, data: out.toString() })
-    } else {
-        return res.status(401).json({ message: "Incorrect password", ok: false })
+        return res.status(200).json({ message: "Login successful", ok: true })
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json({ message: "Login failed", ok: false })
     }
 }

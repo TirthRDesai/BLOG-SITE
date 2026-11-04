@@ -68,10 +68,7 @@ function EditDetails({ Data, setFetchOnCall, BoxRef }) {
 
         if (file) {
             let fileFormData = new FormData()
-            fileFormData.append('Username', ReceivedData.Username)
             fileFormData.append('FileData', file)
-            fileFormData.append('Filename', EncryptData(ReceivedData.ProfilePic + ".jpg"))
-            fileFormData.append('Bucket', EncryptData('profile-pictures'))
 
 
             const base64 = await new Promise((resolve, reject) => {
@@ -147,8 +144,7 @@ function EditDetails({ Data, setFetchOnCall, BoxRef }) {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    data: data,
-                    Username: ReceivedData.Username
+                    data: data
                 })
             })
             const result = await response.json()
@@ -166,10 +162,12 @@ function EditDetails({ Data, setFetchOnCall, BoxRef }) {
                     title: 'Data Changed'
                 })
 
-                ReceivedData[Column] = NewValue
-                setReceivedData(ReceivedData)
+                if (Column !== "Password") {
+                    ReceivedData[Column] = NewValue
+                    setReceivedData(ReceivedData)
 
-                Data[Column] = NewValue
+                    Data[Column] = NewValue
+                }
             } else {
                 const Toast = Swal.mixin({
                     toast: true,
@@ -226,7 +224,7 @@ function EditDetails({ Data, setFetchOnCall, BoxRef }) {
                     <ChangeDataSections label={"Name"} defaultValue={ReceivedData.Name} action={changeData} />
                     <ChangeDataSections label={"Email"} defaultValue={ReceivedData.Email} action={changeData} />
                     <ChangeDataSections label={"Bio"} defaultValue={ReceivedData.Bio} action={changeData} />
-                    <ChangeDataSections label={"Password"} defaultValue={ReceivedData.Password} action={changeData} />
+                    <ChangeDataSections label={"Password"} defaultValue={""} action={changeData} />
                 </div>
             </div>
         </div>

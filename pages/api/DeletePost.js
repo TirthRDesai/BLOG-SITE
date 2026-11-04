@@ -1,58 +1,29 @@
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+import { requireSession } from "@/lib/auth"
 
 export default async function handler(req, res) {
-    if (req.method === "POST") {
-        const { Username, PostId } = req.body;
-        const { data, error } = await supabase
-            .from("Posts").select(`
-                Image1,
-                Image2,
-                Image3
-            `)
+    if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed", ok: false })
+    const session = await requireSession(req, res)
+    if (!session) return
+    const { supabase, user } = session
 
-        if (error) {
-            return res.status(400).json({ error: error.message, ok: false });
-        }
+    const PostId = String(req.body?.PostId ?? "")
+    if (!/^[0-9a-f-]{36}$/i.test(PostId)) return res.status(400).json({ message: "Invalid PostId", ok: false })
 
-        const result = data[0]
+    const { data: post } = await supabase
+        .from("posts")
+        .select("id, author_id, post_images(path)")
+        .eq("id", PostId)
+        .maybeSingle()
 
-        const urlList = (await supabase.storage.from("posts").list()).data
+    if (!post) return res.status(404).json({ message: "Post not found", ok: false })
+    if (post.author_id !== user.id) return res.status(403).json({ message: "Not your post", ok: false })
 
-        let toDelete = []
+    // RLS only allows deleting your own post; image rows cascade.
+    const { error } = await supabase.from("posts").delete().eq("id", PostId)
+    if (error) return res.status(400).json({ message: "Delete failed", ok: false })
 
-        for (let i = 0; i < urlList.length; i++) {
-            if (urlList[i].name.includes(result.Image1)) {
-                toDelete.push(urlList[i].name)
-            }
-            if (urlList[i].name.includes(result.Image2)) {
-                toDelete.push(urlList[i].name)
-            }
-            if (urlList[i].name.includes(result.Image3)) {
-                toDelete.push(urlList[i].name)
-            }
-            if (toDelete.length == 3) {
-                break
-            }
-        }
+    const paths = (post.post_images ?? []).map((i) => i.path)
+    if (paths.length) await supabase.storage.from("post-images").remove(paths)
 
-        for (let i = 0; i < toDelete.length; i++) {
-            console.log(toDelete[i])
-            const deleteResponse = await supabase.storage.from("posts").remove(toDelete[i])
-
-            if (deleteResponse.error) {
-                return res.status(400).json({ error: deleteResponse.error.message, ok: false });
-            }
-        }
-
-        const { error1 } = await supabase.from("Posts").delete().eq("id", PostId)
-
-        if (error1) {
-            return res.status(400).json({ error: error1.message, ok: false });
-        }
-
-        return res.status(200).json({ message: "Deleted", ok: true });
-
-    }
+    return res.status(200).json({ message: "Deleted", ok: true })
 }

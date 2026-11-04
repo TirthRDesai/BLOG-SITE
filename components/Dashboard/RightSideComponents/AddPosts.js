@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { MdDeleteForever } from 'react-icons/md'
 import PostLayout from './PostLayout';
 import axios from 'axios';
-import { createClient } from '@supabase/supabase-js';
 
 function AddPosts({ UserData, setAddPost, setPostsUser }) {
     useEffect(() => {
@@ -69,21 +68,21 @@ function AddPosts({ UserData, setAddPost, setPostsUser }) {
         }
 
         try {
-            const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+            const formData = new FormData()
+            formData.append("TextPart", TextPart)
+            if (Image1) formData.append("Image1", Image1)
+            if (Image2) formData.append("Image2", Image2)
+            if (Image3) formData.append("Image3", Image3)
 
+            const response = await fetch("/api/UploadPost", { method: "POST", body: formData })
+            const result = await response.json()
 
-            const response = await supabase.from("Posts").insert({
-                Username: UserData.Username,
-                TextPart: TextPart
-            }).select("*")
-
-            if (response.error) {
+            if (!result.ok) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
-                    text: response.error.message,
+                    text: result.message,
                 })
-
                 setIsSharing(false)
                 return
             }
@@ -97,69 +96,6 @@ function AddPosts({ UserData, setAddPost, setPostsUser }) {
                 Image3: Image3 ? URL.createObjectURL(Image3) : null
             })
 
-            const selectedData = response.data
-
-            if (Image1) {
-                const { data, error } = await supabase.storage.from("posts").upload(selectedData[0].Image1 + ".jpg", Image1, {
-                    cacheControl: '3600',
-                    contentType: 'image/jpeg',
-                    duplex: 'half',
-                    upsert: true
-                })
-
-                if (error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: error,
-                    })
-                    setIsSharing(false)
-                    return
-                }
-
-            }
-
-            if (Image2) {
-                const { data, error } = await supabase.storage.from("posts").upload(selectedData[0].Image2 + ".jpg", Image2, {
-                    cacheControl: '3600',
-                    contentType: 'image/jpeg',
-                    duplex: 'half',
-                    upsert: true
-                })
-
-                if (error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: error,
-                    })
-                    setIsSharing(false)
-                    return
-                }
-
-            }
-
-
-
-            if (Image3) {
-                const { data, error } = await supabase.storage.from("posts").upload(selectedData[0].Image3 + ".jpg", Image3, {
-                    cacheControl: '3600',
-                    contentType: 'image/jpeg',
-                    duplex: 'half',
-                    upsert: true
-                })
-
-                if (error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: error,
-                    })
-                    setIsSharing(false)
-                    return
-                }
-
-            }
             Swal.fire({
                 icon: 'success',
                 title: 'Success',

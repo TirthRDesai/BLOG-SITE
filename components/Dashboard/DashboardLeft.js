@@ -5,8 +5,7 @@ import Image from 'next/image'
 import defaultProfilePicture from '../../public/Assets/defaultProfilePicture.png'
 import Swal from 'sweetalert2'
 import { useMemo } from 'react'
-import StaticFunctions from '../../pages/api/StaticFunctions'
-import { ClientSideCookies } from '../CustomCookie'
+import StaticFunctions from '../../lib/StaticFunctions'
 import { useRouter } from 'next/router'
 import { HiOutlineUserRemove } from "react-icons/hi";
 import { RiUserUnfollowLine } from 'react-icons/ri'
@@ -26,128 +25,11 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
     useEffect(() => {
         const user_profile_pic = document.getElementById("user_profile_pic")
 
-        async function setBase64() {
-            const url = await FetchImage(ProfilePic, "profile-pictures")
-
-            if (url != "Default") {
-                user_profile_pic.src = url
-            }
-        }
-
-        if (ProfilePic != "Default") {
-            setBase64()
+        // ProfilePic is already a public URL (or "Default")
+        if (ProfilePic != "Default" && user_profile_pic) {
+            user_profile_pic.src = ProfilePic
         }
     }, [ProfilePic])
-
-    const FetchImage = async (Filename, Path) => {
-        const base64Data = await fetch("/api/FetchImage", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                AllData:
-                    EncryptData(
-                        JSON.stringify(
-                            [
-                                {
-                                    Filename: Filename + ".jpg",
-                                    Path: Path
-                                }
-                            ]
-                        )
-                    )
-            })
-        }).then(res => res.json()).then(data => {
-            if (data.ok) {
-                return data.data
-            } else {
-                return "Default"
-            }
-        })
-
-        return base64Data
-    }
-
-    const isDescendant = (parent, child) => {
-        var node = child.parentNode;
-        while (node != null) {
-            if (node == parent) {
-                return true;
-            }
-            node = node.parentNode;
-        }
-        return false;
-    }
-
-    const ExpandCard = (target) => {
-        const cards = document.getElementById("container").children
-
-        let heading = null
-        let content = null
-
-        for (let i = 0; i < cards.length; i++) {
-            heading = cards[i].children[0]
-            content = cards[i].children[1]
-
-            heading.style.lineHeight = "1.75rem"
-            heading.style.fontSize = "1.25rem"
-
-            if (cards[i] == target || isDescendant(cards[i], target)) {
-                cards[i].style.height = "100%"
-                heading.style.height = "20%"
-                heading.style.color = "	#4b0082"
-                heading.style.fontWeight = "900"
-                content.style.display = "flex"
-                content.style.height = "100%"
-                content.style.justifyContent = "flex-start"
-                content.style.marginTop = "20px"
-                continue
-            }
-
-            cards[i].style.height = "20%"
-
-
-            heading.style.height = "100%"
-            heading.style.color = "black"
-            heading.style.fontWeight = "700"
-
-            content.style.display = "none"
-
-            content.style.height = "0%"
-            content.style.justifyContent = "center"
-            content.style.marginTop = "0px"
-
-        }
-    }
-
-    const CollapseCard = (target) => {
-        const cards = document.getElementById("container").children
-
-        let heading = null
-        let content = null
-
-        for (let i = 0; i < cards.length; i++) {
-            heading = cards[i].children[0]
-            content = cards[i].children[1]
-
-            heading.style.lineHeight = "1.75rem"
-            heading.style.fontSize = "1.25rem"
-
-            cards[i].style.height = "20%"
-
-            heading.style.height = "100%"
-            heading.style.color = "black"
-            heading.style.fontWeight = "700"
-
-            content.style.display = "none"
-
-            content.style.height = "0%"
-            content.style.justifyContent = "center"
-            content.style.marginTop = "0px"
-        }
-
-    }
 
     const logoutUser = () => {
         Swal.fire({
@@ -171,10 +53,7 @@ function DashboardLeft({ UserData, setFetchOnCall, setAction, setData }) {
                 })
                 Toast.fire()
                 localStorage.clear()
-                const clientSideCookies = new ClientSideCookies()
-                clientSideCookies.deleteCustomCookie("Username")
-                clientSideCookies.deleteCustomCookie("isLoggedIn")
-                router.push("/")
+                fetch("/api/Logout", { method: "POST" }).finally(() => router.push("/"))
             }
         })
     }

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import styles from "../styles/Dashboard.module.css"
 import DashboardLeft from '../components/Dashboard/DashboardLeft'
 import DashboardRight from '../components/Dashboard/DashboardRight'
-import { ServerSideCookies } from '../components/CustomCookie'
+import { getSession } from '../lib/auth'
 import DashboardFallback from '../components/Dashboard/DashboardFallback'
 import useSWR from 'swr'
 import { DecryptData } from '../components/EncryptingFunctions'
@@ -102,53 +102,11 @@ function Dashboard({ Username, NewUser }) {
 export default Dashboard
 
 export async function getServerSideProps(context) {
-    const { req, res } = context
+    const session = await getSession(context.req, context.res)
 
-    try {
-        // const { NewUser } = context.query
-
-        const serverSideCookie = new ServerSideCookies(req, res)
-
-        try {
-            const cookies = serverSideCookie.getCustomAllCookie()
-            const isLoggedIn = cookies.isLoggedIn
-
-            if (isLoggedIn == "No" || isLoggedIn == undefined) {
-                return {
-                    redirect: {
-                        destination: '/',
-                        permanent: false,
-                    },
-                }
-            }
-
-            const { Username } = cookies
-
-            return {
-                props: {
-                    Username: Username,
-                    NewUser: true
-                }
-            }
-        } catch (e) {
-
-            serverSideCookie.clear()
-            console.log(e)
-
-            return {
-                redirect: {
-                    destination: '/',
-                    permanent: false,
-                },
-            }
-        }
-    } catch (e) {
-        console.log(e)
-        return {
-            redirect: {
-                destination: '/',
-                permanent: false,
-            },
-        }
+    if (!session) {
+        return { redirect: { destination: '/', permanent: false } }
     }
+
+    return { props: { Username: session.profile.username, NewUser: false } }
 }

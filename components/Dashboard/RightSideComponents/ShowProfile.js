@@ -3,10 +3,9 @@ import Image from 'next/image'
 import defaultProfilePicture from '../../../public/Assets/defaultProfilePicture.png'
 import styles from '../../../styles/DashboardRight.module.css'
 import { Button } from '@/components/ui/button'
-import StaticFunctions from '@/pages/api/StaticFunctions'
+import StaticFunctions from '@/lib/StaticFunctions'
 import { DecryptData } from '@/components/EncryptingFunctions'
 import Swal from 'sweetalert2'
-import { createClient } from '@supabase/supabase-js'
 
 function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef, setPostsUser, PostsUser }) {
     const bgImgRef = useRef(null)
@@ -39,26 +38,10 @@ function ShowProfile({ Data, setFetchOnCall, UserData, BoxRef, setPostsUser, Pos
             let res = JSON.parse(DecryptData(response))
             let result = JSON.parse(DecryptData(res.data))
 
-            const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-
-            const { data, error } = await supabase.storage.from('profile-pictures').list()
-
-            if (error) {
-                console.log(error)
+            // ProfilePic is already a public URL (or "Default")
+            if (!result.ProfilePic || result.ProfilePic == "Default") {
+                result.ProfilePic = "../../Assets/defaultProfilePicture.png"
             }
-
-
-            let temp = "../../Assets/defaultProfilePicture.png"
-
-            for (let i = 0; i < data.length; i++) {
-                if (data[i].name == (result.ProfilePic + ".jpg")) {
-                    const publicUrl = supabase.storage.from('profile-pictures').getPublicUrl(data[i].name).data.publicUrl
-                    temp = publicUrl ? publicUrl : "Default"
-                    break
-                }
-            }
-
-            result.ProfilePic = temp
 
             return result
         }
