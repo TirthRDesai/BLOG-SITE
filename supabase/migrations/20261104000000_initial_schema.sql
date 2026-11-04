@@ -155,7 +155,9 @@ create policy follows_delete_involved on public.follows
 -- ---------------------------------------------------------------------------
 -- Storage: public-read buckets (images are served by URL), writes only into your own folder.
 -- Object path convention: <user-id>/<random-file-name>
--- No SELECT policy on storage.objects => bucket listing is not possible from the client.
+-- The Storage API needs SELECT to find an object before it can delete/overwrite it, so users get
+-- SELECT on their OWN folder only. Public URLs still work for everyone, but nobody can list other
+-- users' files through the API.
 -- ---------------------------------------------------------------------------
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values
@@ -165,6 +167,13 @@ on conflict (id) do update
     set public = excluded.public,
         file_size_limit = excluded.file_size_limit,
         allowed_mime_types = excluded.allowed_mime_types;
+
+create policy "own folder select" on storage.objects
+    for select to authenticated
+    using (
+        bucket_id in ('avatars', 'post-images')
+        and (storage.foldername(name))[1] = (select auth.uid())::text
+    );
 
 create policy "own folder insert" on storage.objects
     for insert to authenticated

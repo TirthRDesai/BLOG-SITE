@@ -34,3 +34,12 @@ after you have exported anything you need (`supabase db reset --linked` is destr
 ## Old data
 Old passwords are plaintext, so users cannot be copied over as-is; they would need to re-register or reset
 passwords via Supabase Auth.
+
+## Running the app against it
+```bash
+npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit
+npx supabase status -o env      # copy API_URL / ANON_KEY / SERVICE_ROLE_KEY into .env.local (see .env.example)
+npm run dev
+```
+In production set the same three variables from your Supabase project in Vercel. If you turn on
+"Confirm email" in the Supabase dashboard, signup shows "Check your email" instead of logging in directly.
