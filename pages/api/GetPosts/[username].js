@@ -1,168 +1,53 @@
-import { getSessionUser } from "@/lib/auth"
-import { supabase } from "@/lib/supabaseServer"
-import { EncryptData } from "@/components/EncryptingFunctions"
+import { requireSession } from "@/lib/auth"
+import { avatarUrl, postImageUrl } from "@/lib/shapes"
 
+const PAGE_SIZE = 50
 
+// GET /api/GetPosts/<username | *>  (optional ?before=<ISO timestamp> for older posts)
 export default async function handler(req, res) {
+    const session = await requireSession(req, res)
+    if (!session) return
+    const { supabase, profile } = session
 
-    const mainUsername = await getSessionUser(req)
-    if (!mainUsername) return res.status(401).json({ message: "Not authenticated", ok: false })
-    const { username } = req.query
-    let response = null
+    const username = String(req.query.username ?? "*").toLowerCase()
+    const before = typeof req.query.before === "string" ? req.query.before : null
 
-    if (username == "*") {
-        response = await supabase.from("Posts").select("*")
-    }
-    else {
-        response = await supabase.from("Posts").select("*").eq("Username", username)
-    }
+    let query = supabase
+        .from("posts")
+        .select("id, created_at, body, author:profiles!posts_author_id_fkey!inner(id, username, name, avatar_path), post_images(path, position)")
+        .order("created_at", { ascending: false })
+        .limit(PAGE_SIZE)
 
-    if (response.error) {
-        return res.status(401).json({ message: response.error.message, ok: false })
-    }
+    if (username !== "*") query = query.eq("author.username", username)
+    if (before) query = query.lt("created_at", before)
 
-    const allPfpsResponse = await supabase.storage.from("profile-pictures").list()
+    const { data, error } = await query
+    if (error) return res.status(400).json({ message: "Could not load posts", ok: false })
 
-    const allPostsImageResponse = await supabase.storage.from("posts").list()
+    const { data: following } = await supabase.from("follows").select("followee_id").eq("follower_id", profile.id)
+    const followingIds = new Set((following ?? []).map((f) => f.followee_id))
 
-
-    if (allPfpsResponse.error) {
-        return res.status(401).json({ message: allPfpsResponse.error.message, ok: false })
-    }
-
-    if (allPostsImageResponse.error) {
-        return res.status(401).json({ message: allPostsImageResponse.error.message, ok: false })
-    }
-
-    const allPfps = []
-
-    for (let i = 0; i < allPfpsResponse.data.length; i++) {
-        if (allPfpsResponse.data[i].name != ".emptyFolderPlaceholder") {
-            allPfps.push(allPfpsResponse.data[i].name)
+    const AllPosts = data.map((p) => {
+        const images = [...(p.post_images ?? [])].sort((a, b) => a.position - b.position)
+        const PostData = {
+            id: p.id,
+            created_at: p.created_at,
+            Username: p.author.username,
+            TextPart: p.body,
         }
-    }
-
-    const allPostsImages = []
-
-    for (let i = 0; i < allPostsImageResponse.data.length; i++) {
-        if (allPostsImageResponse.data[i].name != ".emptyFolderPlaceholder") {
-            allPostsImages.push(allPostsImageResponse.data[i].name)
-        }
-    }
-
-    const data = response.data
-
-    const AllPosts = []
-
-
-    for (let i = 0; i < data.length; i++) {
-        const PostData = data[i]
-        var UserData = await getUserData(data[i].Username)
-        if (UserData == null) {
-            continue
-        }
-
-        if (allPfps.includes(UserData.ProfilePic + ".jpg")) {
-            const { data, error } = supabase.storage.from("profile-pictures").getPublicUrl(UserData.ProfilePic + ".jpg", 600)
-            if (error) {
-                console.log(error)
-                UserData.ProfilePic = "Default"
-            }
-            else {
-                UserData.ProfilePic = data.publicUrl
-            }
-        } else {
-            UserData.ProfilePic = "Default"
-        }
-
-        if (UserData.Followers.includes(mainUsername)) {
-            UserData.isFollowed = true
-        } else {
-            UserData.isFollowed = false
-        }
-        delete (UserData["Followers"])
-
-        if (allPostsImages.includes(PostData.Image1 + ".jpg")) {
-            const { data, error } = supabase.storage.from("posts").getPublicUrl(PostData.Image1 + ".jpg", 600)
-            if (error) {
-                delete (PostData["Image1"])
-            }
-            else {
-                PostData.Image1 = data.publicUrl
-            }
-        }
-        else {
-            delete (PostData["Image1"])
-        }
-
-        if (allPostsImages.includes(PostData.Image2 + ".jpg")) {
-            const { data, error } = supabase.storage.from("posts").getPublicUrl(PostData.Image2 + ".jpg", 600)
-            if (error) {
-                delete (PostData["Image2"])
-            }
-            else {
-                PostData.Image2 = data.publicUrl
-            }
-        }
-        else {
-            delete (PostData["Image2"])
-        }
-
-        if (allPostsImages.includes(PostData.Image3 + ".jpg")) {
-            const { data, error } = supabase.storage.from("posts").getPublicUrl(PostData.Image3 + ".jpg", 600)
-            if (error) {
-                delete (PostData["Image3"])
-            }
-            else {
-                PostData.Image3 = data.publicUrl
-            }
-        }
-        else {
-            delete (PostData["Image3"])
-        }
-
-        AllPosts.push({
-            PostData: PostData,
-            UserData: UserData
+        images.forEach((img, i) => {
+            PostData["Image" + (i + 1)] = postImageUrl(supabase, img.path)
         })
-    }
-
-    const endTime = new Date().getTime()
+        return {
+            PostData,
+            UserData: {
+                Username: p.author.username,
+                Name: p.author.name,
+                ProfilePic: avatarUrl(supabase, p.author.avatar_path),
+                isFollowed: followingIds.has(p.author.id),
+            },
+        }
+    })
 
     return res.status(200).json({ message: "Posts found", ok: true, data: JSON.stringify(AllPosts) })
-
 }
-
-
-
-const getUserData = async (Username) => {
-    const { data, error } = await supabase.from("UserData").select(`
-        Username,
-        ProfilePic,
-        Name,
-        Followers
-    `).eq("Username", Username)
-
-    if (error) {
-        return null
-    }
-
-    return data[0]
-}
-
-/* 
-PostData = {
-    id: id,
-    Username: Username,
-    TextPart: TextPart,
-    Image1: Image1,
-    Image2: Image2,
-    Image3: Image3,
-    created_at: timestamp,
-}
-UserData = {
-    Username: Username,
-    ProfilePicture: SignedURL,
-    Name: "Name",
-    isFollowed: true/false,
- } */

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import styles from "../styles/Dashboard.module.css"
 import DashboardLeft from '../components/Dashboard/DashboardLeft'
 import DashboardRight from '../components/Dashboard/DashboardRight'
-import { getSessionUser } from '../lib/auth'
+import { getSession } from '../lib/auth'
 import DashboardFallback from '../components/Dashboard/DashboardFallback'
 import useSWR from 'swr'
 import { DecryptData } from '../components/EncryptingFunctions'
@@ -102,12 +102,11 @@ function Dashboard({ Username, NewUser }) {
 export default Dashboard
 
 export async function getServerSideProps(context) {
-    const { req } = context
-    const Username = await getSessionUser(req)
+    const session = await getSession(context.req, context.res)
 
-    if (!Username) {
+    if (!session) {
         return { redirect: { destination: '/', permanent: false } }
     }
 
-    return { props: { Username, NewUser: false } }
+    return { props: { Username: session.profile.username, NewUser: false } }
 }

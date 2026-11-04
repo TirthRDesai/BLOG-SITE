@@ -3,11 +3,10 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import Slider from 'react-slick'
 import styles from '../../../styles/PostLayout.module.css'
-import StaticFunctions from '@/pages/api/StaticFunctions'
+import StaticFunctions from '@/lib/StaticFunctions'
 import { DecryptData } from '@/components/EncryptingFunctions'
 import Swal from 'sweetalert2'
 import { createBrowserClient } from '@supabase/ssr'
-import { createClient } from '@supabase/supabase-js'
 
 function PostLayout({ PostData, UserData, PostUserData, setAction, setData, setFetchOnCall }) {
 

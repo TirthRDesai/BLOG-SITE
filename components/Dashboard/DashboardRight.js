@@ -4,10 +4,8 @@ import EditDetails from './RightSideComponents/EditDetails'
 import ShowProfile from './RightSideComponents/ShowProfile'
 import Posts from './RightSideComponents/Posts'
 import { Button } from '@/components/ui/button'
-import { ClientSideCookies } from '../CustomCookie'
 import AddPosts from './RightSideComponents/AddPosts'
 import Swal from 'sweetalert2'
-import { createClient } from '@supabase/supabase-js'
 
 function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, setData }) {
 
@@ -100,10 +98,10 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
     }, [Data, Username])
 
     useEffect(() => {
-        const clientSideCookies = new ClientSideCookies()
-        const Username = clientSideCookies.getCustomCookie("Username")
-        setUsername(Username)
-    }, [])
+        if (UserData && UserData.Username) {
+            setUsername(UserData.Username)
+        }
+    }, [UserData])
 
     useEffect(() => {
 
@@ -360,8 +358,6 @@ function DashboardRight({ Action, Data, setFetchOnCall, UserData, setAction, set
                                 })
 
                                 setTimeout(() => {
-                                    const clientSideCookies = new ClientSideCookies()
-                                    clientSideCookies.clear()
                                     localStorage.clear()
                                     window.location.href = "/"
                                 }, 1500)

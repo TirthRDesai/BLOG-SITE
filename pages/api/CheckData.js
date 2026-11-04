@@ -1,35 +1,34 @@
-import { supabase, SELF_FIELDS } from "@/lib/supabaseServer"
-import { verifyPassword, hashPassword, createSession } from "@/lib/auth"
-import { EncryptData } from "@/components/EncryptingFunctions"
+import { createClient } from "@/lib/supabase/server"
+import { admin } from "@/lib/supabase/admin"
 
+// Login with username (or email) + password.
 export default async function handler(req, res) {
     if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed", ok: false })
 
-    const username = String(req.body?.username ?? "").trim().toLowerCase()
+    const identifier = String(req.body?.username ?? "").trim().toLowerCase()
     const password = req.body?.password
+    const fail = () => res.status(401).json({ message: "Incorrect username or password", ok: false })
 
-    const { data, error } = await supabase
-        .from("UserData")
-        .select(SELF_FIELDS + ", Password")
-        .eq("Username", username)
+    if (!identifier || typeof password !== "string" || !password) return fail()
 
-    if (error) {
-        console.log(error)
+    try {
+        let email = identifier
+        if (!identifier.includes("@")) {
+            // Supabase Auth signs in by email; resolve the username server-side only.
+            const { data: profile } = await admin().from("profiles").select("id").eq("username", identifier).maybeSingle()
+            if (!profile) return fail()
+            const { data: u } = await admin().auth.admin.getUserById(profile.id)
+            if (!u?.user?.email) return fail()
+            email = u.user.email
+        }
+
+        const supabase = createClient(req, res)
+        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) return fail()
+
+        return res.status(200).json({ message: "Login successful", ok: true })
+    } catch (e) {
+        console.log(e)
         return res.status(500).json({ message: "Login failed", ok: false })
     }
-
-    // Same message for unknown user / wrong password (no user enumeration).
-    const fail = () => res.status(401).json({ message: "Incorrect username or password", ok: false })
-    if (data.length === 0) return fail()
-
-    const { Password: stored, ...user } = data[0]
-    const result = await verifyPassword(stored, password)
-    if (!result.ok) return fail()
-
-    if (result.needsUpgrade) {
-        await supabase.from("UserData").update({ Password: await hashPassword(password) }).eq("Username", username)
-    }
-
-    await createSession(res, user.Username)
-    return res.status(200).json({ message: "Login successful", ok: true, data: EncryptData(JSON.stringify(user)) })
 }

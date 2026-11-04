@@ -1,15 +1,16 @@
 import { Formidable } from "formidable"
-import { createReadStream } from "fs"
-import { supabase } from "@/lib/supabaseServer"
-import { requireUser } from "@/lib/auth"
+import { readFile } from "fs/promises"
+import { randomUUID } from "crypto"
+import { requireSession } from "@/lib/auth"
 
 const MAX_BYTES = 5 * 1024 * 1024
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
+const EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }
 
 export default async function handler(req, res) {
     if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed", ok: false })
-    const me = await requireUser(req, res)
-    if (!me) return
+    const session = await requireSession(req, res)
+    if (!session) return
+    const { supabase, user } = session
 
     try {
         const { fields, files } = await new Promise((resolve, reject) => {
@@ -17,40 +18,46 @@ export default async function handler(req, res) {
             form.parse(req, (err, fields, files) => (err ? reject(err) : resolve({ fields, files })))
         })
 
-        const TextPart = fields.TextPart?.[0]
-        if (typeof TextPart !== "string" || !TextPart.trim() || TextPart.length > 5000) {
+        const body = fields.TextPart?.[0]
+        if (typeof body !== "string" || !body.trim() || body.length > 5000)
             return res.status(400).json({ message: "Post text required (max 5000 chars)", ok: false })
-        }
 
-        const images = ["Image1", "Image2", "Image3"].map((k) => files[k]?.[0] ?? null)
+        const images = ["Image1", "Image2", "Image3"].map((k) => files[k]?.[0]).filter(Boolean)
         for (const img of images) {
-            if (img && !ALLOWED_TYPES.includes(img.mimetype)) {
+            if (!EXT[img.mimetype])
                 return res.status(400).json({ message: "Only JPEG, PNG or WebP images allowed", ok: false })
-            }
         }
 
-        // Username comes from the session, never from the request.
-        const insert = await supabase.from("Posts").insert({ Username: me, TextPart }).select("*").single()
-        if (insert.error) {
-            console.log(insert.error)
-            return res.status(400).json({ message: "Could not create post", ok: false })
-        }
-        const post = insert.data
+        // author_id must equal auth.uid() (RLS); it comes from the verified session.
+        const { data: post, error } = await supabase.from("posts").insert({ author_id: user.id, body }).select("id").single()
+        if (error) return res.status(400).json({ message: "Could not create post", ok: false })
 
+        const rollback = async (paths) => {
+            if (paths.length) await supabase.storage.from("post-images").remove(paths)
+            await supabase.from("posts").delete().eq("id", post.id)
+        }
+
+        const uploaded = []
         for (let i = 0; i < images.length; i++) {
             const img = images[i]
-            if (!img) continue
-            const { error } = await supabase.storage
-                .from("posts")
-                .upload(post["Image" + (i + 1)] + ".jpg", createReadStream(img.filepath), {
-                    cacheControl: "3600",
-                    contentType: img.mimetype,
-                    duplex: "half",
-                    upsert: false,
-                })
-            if (error) {
-                console.log(error)
+            const path = `${user.id}/${post.id}-${i}-${randomUUID()}.${EXT[img.mimetype]}`
+            const { error: upErr } = await supabase.storage
+                .from("post-images")
+                .upload(path, await readFile(img.filepath), { contentType: img.mimetype, cacheControl: "3600" })
+            if (upErr) {
+                await rollback(uploaded)
                 return res.status(400).json({ message: "Image upload failed", ok: false })
+            }
+            uploaded.push(path)
+        }
+
+        if (uploaded.length) {
+            const { error: imgErr } = await supabase
+                .from("post_images")
+                .insert(uploaded.map((path, position) => ({ post_id: post.id, path, position })))
+            if (imgErr) {
+                await rollback(uploaded)
+                return res.status(400).json({ message: "Could not save images", ok: false })
             }
         }
 
@@ -61,8 +68,4 @@ export default async function handler(req, res) {
     }
 }
 
-export const config = {
-    api: {
-        bodyParser: false,
-    },
-}
+export const config = { api: { bodyParser: false } }

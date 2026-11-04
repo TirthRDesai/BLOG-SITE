@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { MdDeleteForever } from 'react-icons/md'
 import PostLayout from './PostLayout';
 import axios from 'axios';
-import { createClient } from '@supabase/supabase-js';
 
 function AddPosts({ UserData, setAddPost, setPostsUser }) {
     useEffect(() => {
